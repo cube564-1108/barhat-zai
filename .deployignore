@@ -1,0 +1,22 @@
+# Что исключить из деплоя на Amvera
+.env
+__pycache__/
+*.pyc
+data/
+temp/
+tasks/
+plans/
+retrospectives/
+Идеи/
+instructions/
+agents/
+triggers/
+.claude/
+ai-clone/
+business/
+mastery/
+scripts/
+reports/
+legal-audit-report.html
+florist-quality-dashboard.html
+florist_orders.json
