@@ -1,9 +1,1 @@
 version: null
-meta:
-  environment: nginx
-
-build:
-  - pip install --upgrade pip
-
-run:
-  command: nginx -g 'daemon off;'
