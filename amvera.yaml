@@ -1,0 +1,5 @@
+version: null
+meta:
+  environment: nginx
+  toolchain:
+    name: nginx
