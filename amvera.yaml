@@ -1,5 +1,4 @@
 version: null
 meta:
-  environment: static
   toolchain:
     name: nginx
