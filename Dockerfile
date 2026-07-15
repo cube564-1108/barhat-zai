@@ -34,7 +34,6 @@ WORKDIR /app
 # Copy application files
 COPY reports/app.py /app/app.py
 COPY reports/index.html /usr/share/nginx/html/index.html
-COPY reports/florist-quality.html /usr/share/nginx/html/florist-quality.html
 COPY brand/tokens.css /usr/share/nginx/html/brand/tokens.css
 COPY brand/brand.css /usr/share/nginx/html/brand/brand.css
 COPY nginx.conf /etc/nginx/nginx.conf
