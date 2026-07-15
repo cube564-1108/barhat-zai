@@ -245,6 +245,96 @@ def reconcile_orders():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/update-quality', methods=['POST'])
+@require_session
+def update_quality_data():
+    """
+    Обновить данные качества букетов из Pyrus.
+
+    Запускает процесс:
+    1. Выгрузка из Pyrus (pyrus_export.py)
+    2. Генерация HTML (process_quality_data_full.py)
+    3. Обновление index.html в корне
+    """
+    try:
+        print("🔄 Начинаем обновление данных качества...")
+
+        # Пути к скриптам и файлам
+        root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        pyrus_script = os.path.join(root_dir, 'pyrus_export.py')
+        process_script = os.path.join(root_dir, 'process_quality_data_full.py')
+        data_dir = os.path.join(root_dir, 'data')
+        target_html = os.path.join(root_dir, 'index.html')
+
+        # Шаг 1: Выгрузка из Pyrus
+        print("📥 Шаг 1: Выгрузка из Pyrus...")
+        cmd_pyrus = [sys.executable, pyrus_script]
+        result_pyrus = subprocess.run(
+            cmd_pyrus,
+            capture_output=True,
+            text=True,
+            cwd=root_dir,
+            env={**os.environ, 'PYTHONIOENCODING': 'utf-8'}
+        )
+
+        if result_pyrus.returncode != 0:
+            return jsonify({
+                'error': 'Ошибка выгрузки из Pyrus',
+                'details': result_pyrus.stderr
+            }), 500
+
+        print("✅ Выгрузка из Pyrus завершена")
+
+        # Шаг 2: Генерация HTML
+        print("📊 Шаг 2: Генерация HTML...")
+        cmd_process = [sys.executable, process_script]
+        result_process = subprocess.run(
+            cmd_process,
+            capture_output=True,
+            text=True,
+            cwd=root_dir,
+            env={**os.environ, 'PYTHONIOENCODING': 'utf-8'}
+        )
+
+        if result_process.returncode != 0:
+            return jsonify({
+                'error': 'Ошибка генерации HTML',
+                'details': result_process.stderr
+            }), 500
+
+        print("✅ HTML сгенерирован")
+
+        # Шаг 3: Проверка, что файл создан
+        if not os.path.exists(target_html):
+            return jsonify({
+                'error': 'HTML файл не был создан'
+            }), 500
+
+        # Получаем статистику из сгенерированного HTML
+        # Извлекаем количество заказов из HTML
+        with open(target_html, 'r', encoding='utf-8') as f:
+            html_content = f.read()
+            # Ищем totalOrders в JavaScript
+            import re
+            match = re.search(r'totalOrders.*?(\d+[,\d]*)', html_content)
+            total_orders = match.group(1) if match else 'N/A'
+
+        return jsonify({
+            'success': True,
+            'message': 'Данные успешно обновлены',
+            'timestamp': datetime.now().isoformat(),
+            'stats': {
+                'total_orders': total_orders
+            }
+        })
+
+    except Exception as e:
+        print(f'❌ Ошибка: {e}')
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/health')
 def health():
     """Проверка здоровья сервера."""
@@ -253,7 +343,8 @@ def health():
         'timestamp': datetime.now().isoformat(),
         'services': {
             'retailcrm': bool(os.getenv('RETAILCRM_API_KEY')),
-            'moysklad': bool(os.getenv('MOYSKLAD_LOGIN') or os.getenv('MOYSKLAD_TOKEN'))
+            'moysklad': bool(os.getenv('MOYSKLAD_LOGIN') or os.getenv('MOYSKLAD_TOKEN')),
+            'pyrus': bool(os.getenv('PYRUS_ACCESS_TOKEN'))
         }
     })
 
