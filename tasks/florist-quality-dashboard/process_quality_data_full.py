@@ -543,6 +543,8 @@ def generate_html(data, periods):
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Отчет по качеству сборки букетов</title>
+    <link rel="stylesheet" href="/brand/tokens.css">
+    <link rel="stylesheet" href="/brand/brand.css">
     <style>
         * {{
             margin: 0;
@@ -551,30 +553,25 @@ def generate_html(data, periods):
         }}
 
         body {{
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
-            color: #333;
+            background: #fafafa;
+            padding: 0;
         }}
 
-        .container {{
+        .bx-container {{
             max-width: 1800px;
             margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 0;
         }}
 
         .header {{
             text-align: center;
             margin-bottom: 40px;
             padding-bottom: 20px;
-            border-bottom: 3px solid #667eea;
+            border-bottom: 2px solid var(--barkhat-pink-light);
         }}
 
         .header h1 {{
-            color: #667eea;
+            color: var(--barkhat-wine);
             font-size: 2.5em;
             margin-bottom: 10px;
         }}
@@ -584,6 +581,9 @@ def generate_html(data, periods):
             gap: 20px;
             margin-bottom: 30px;
             flex-wrap: wrap;
+            padding: 20px;
+            background: var(--barkhat-white);
+            border-radius: 14px;
         }}
 
         .filter-group {{
@@ -593,93 +593,110 @@ def generate_html(data, periods):
         }}
 
         .filter-group label {{
-            font-weight: 600;
-            color: #666;
+            font-weight: 500;
+            color: var(--barkhat-gray-dark);
         }}
 
         .filter-select {{
             padding: 10px 15px;
-            border: 2px solid #667eea;
+            border: 1px solid var(--barkhat-pink);
             border-radius: 10px;
             font-size: 14px;
-            background: white;
-            color: #333;
+            background: var(--barkhat-white);
+            color: var(--barkhat-gray-dark);
             cursor: pointer;
             min-width: 150px;
         }}
 
         .kpi-cards {{
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+            padding: 0 20px;
         }}
 
         .kpi-card {{
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 25px;
-            border-radius: 15px;
-            color: white;
+            background: var(--barkhat-white);
+            border: 1px solid var(--barkhat-pink-light);
+            border-radius: 14px;
+            padding: 20px;
             text-align: center;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 2px 8px rgba(65, 19, 48, 0.08);
         }}
 
         .kpi-card h3 {{
-            font-size: 0.9em;
-            opacity: 0.9;
-            margin-bottom: 10px;
+            font-family: var(--font-body);
+            font-size: 0.85em;
+            color: var(--barkhat-gray);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 400;
         }}
 
         .kpi-card .value {{
-            font-size: 2.5em;
-            font-weight: bold;
+            font-family: var(--font-heading);
+            font-size: 2.2em;
+            color: var(--barkhat-wine);
+            font-weight: 600;
+        }}
+
+        .kpi-card .subtext {{
+            font-size: 0.9em;
+            color: var(--barkhat-gray);
+            margin-top: 4px;
         }}
 
         .city-nav {{
             display: flex;
             gap: 10px;
-            margin-bottom: 30px;
+            margin-bottom: 24px;
             flex-wrap: wrap;
+            padding: 0 20px;
         }}
 
         .city-btn {{
-            padding: 12px 24px;
-            border: 2px solid #667eea;
-            background: white;
-            color: #667eea;
-            border-radius: 25px;
+            padding: 10px 20px;
+            border: 1px solid var(--barkhat-pink);
+            background: var(--barkhat-white);
+            color: var(--barkhat-pink-deep);
+            border-radius: 20px;
             cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s ease;
         }}
 
         .city-btn.active, .city-btn:hover {{
-            background: #667eea;
-            color: white;
+            background: var(--barkhat-gradient);
+            color: var(--barkhat-white);
+            border-color: transparent;
         }}
 
         .salon-nav {{
             display: flex;
             gap: 10px;
-            margin-bottom: 30px;
+            margin-bottom: 24px;
             flex-wrap: wrap;
         }}
 
         .salon-btn {{
-            padding: 10px 20px;
-            border: 2px solid #764ba2;
-            background: white;
-            color: #764ba2;
-            border-radius: 20px;
+            padding: 8px 16px;
+            border: 1px solid var(--barkhat-pink-light);
+            background: var(--barkhat-white);
+            color: var(--barkhat-pink-deep);
+            border-radius: 18px;
             cursor: pointer;
-            font-weight: 600;
-            font-size: 0.9em;
-            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 13px;
+            transition: all 0.2s ease;
         }}
 
         .salon-btn.active, .salon-btn:hover {{
-            background: #764ba2;
-            color: white;
+            background: var(--barkhat-gradient);
+            color: var(--barkhat-white);
+            border-color: transparent;
         }}
 
         .salon-section {{
@@ -693,36 +710,44 @@ def generate_html(data, periods):
 
         .salons-grid {{
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 18px;
             margin-bottom: 30px;
+            padding: 0 20px;
         }}
 
         .salon-card {{
-            background: #f8f9fa;
-            border-radius: 15px;
+            background: var(--barkhat-white);
+            border-radius: 14px;
             padding: 20px;
-            border: 2px solid #e0e0e0;
+            border: 1px solid var(--barkhat-pink-light);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }}
+
+        .salon-card:hover {{
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(65, 19, 48, 0.12);
         }}
 
         .salon-card .header {{
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 16px;
         }}
 
         .salon-card .name {{
+            font-family: var(--font-heading);
             font-size: 1.2em;
-            font-weight: bold;
-            color: #333;
+            font-weight: 600;
+            color: var(--barkhat-wine);
         }}
 
         .badge {{
-            padding: 5px 12px;
-            border-radius: 15px;
-            font-size: 0.8em;
-            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: 500;
         }}
 
         .badge-good {{ background: #d4edda; color: #155724; }}
@@ -730,29 +755,30 @@ def generate_html(data, periods):
         .badge-bad {{ background: #f8d7da; color: #721c24; }}
 
         .score-big {{
+            font-family: var(--font-heading);
             font-size: 2em;
-            font-weight: bold;
-            color: #667eea;
+            font-weight: 600;
+            color: var(--barkhat-wine);
             text-align: center;
-            margin: 15px 0;
+            margin: 16px 0;
         }}
 
         .metrics {{
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 10px;
-            margin-bottom: 15px;
+            margin-bottom: 16px;
         }}
 
         .metric {{
             display: flex;
             justify-content: space-between;
             padding: 8px 0;
-            border-bottom: 1px solid #e0e0e0;
+            border-bottom: 1px solid var(--barkhat-pink-light);
         }}
 
         .categories-list {{
-            margin-top: 15px;
+            margin-top: 16px;
         }}
 
         .category-item {{
@@ -760,31 +786,26 @@ def generate_html(data, periods):
             justify-content: space-between;
             padding: 5px 0;
             font-size: 0.9em;
+            color: var(--barkhat-gray);
         }}
 
         .florist-card {{
-            background: white;
+            background: var(--barkhat-white);
             border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
-            border: 1px solid #e0e0e0;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            border: 1px solid var(--barkhat-pink-light);
         }}
 
         .florist-card .name {{
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: #333;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--barkhat-gray-dark);
         }}
-
 
         /* Кликабельные карточки салонов */
         .salon-card {{
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }}
-        .salon-card:hover {{
-            transform: translateY(-4px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
         }}
 
 
@@ -796,7 +817,7 @@ def generate_html(data, periods):
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(65, 19, 48, 0.6);
             z-index: 1000;
             justify-content: center;
             align-items: center;
@@ -805,10 +826,10 @@ def generate_html(data, periods):
             display: flex;
         }}
         .modal-content {{
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 900px;
+            background: var(--barkhat-white);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 800px;
             width: 90%;
             max-height: 90vh;
             overflow-y: auto;
@@ -816,42 +837,50 @@ def generate_html(data, periods):
         }}
         .modal-close {{
             position: absolute;
-            top: 20px;
-            right: 20px;
-            background: #f0f0f0;
+            top: 16px;
+            right: 16px;
+            background: var(--barkhat-pink-light);
             border: none;
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             cursor: pointer;
-            font-size: 20px;
+            font-size: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: background 0.2s;
+            color: var(--barkhat-wine);
         }}
         .modal-close:hover {{
-            background: #e0e0e0;
+            background: var(--barkhat-pink);
         }}
         .modal-title {{
-            font-size: 1.8em;
-            color: #667eea;
-            margin-bottom: 10px;
+            font-family: var(--font-heading);
+            font-size: 1.6em;
+            color: var(--barkhat-wine);
+            margin-bottom: 8px;
         }}
         .modal-subtitle {{
-            color: #666;
-            margin-bottom: 30px;
+            color: var(--barkhat-gray);
+            margin-bottom: 24px;
         }}
 
         @media (max-width: 768px) {{
-            .header h1 {{ font-size: 1.8em; }}
+            .header h1 {{ font-size: 1.6em; }}
             .kpi-cards {{ grid-template-columns: 1fr; }}
             .salons-grid {{ grid-template-columns: 1fr; }}
+            .filters {{ padding: 16px; }}
         }}
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="bx-container">
+        <div class="bx-header">
+            <h1>БАРХАТ</h1>
+            <div class="bx-descr">Качество сборки букетов</div>
+        </div>
+
         <div class="header">
             <h1>Отчет по качеству сборки букетов</h1>
             <p>Всего заказов: <span id="totalOrders">{total_stats['total_orders']:,}</span></p>
@@ -891,14 +920,14 @@ def generate_html(data, periods):
 
     # Таблица среднего рейтинга салонов
     html += '''        <!-- Таблица среднего рейтинга салонов -->
-        <div class="chart-section" style="margin: 30px 0; padding: 30px; background: #f8f9fa; border-radius: 15px;">
-            <h2 style="margin-bottom: 20px; color: #667eea;">📊 Рейтинг салонов за период</h2>
+        <div class="chart-section" style="margin: 30px 20px; padding: 24px; background: var(--barkhat-white); border: 1px solid var(--barkhat-pink-light); border-radius: 14px;">
+            <h2 style="margin-bottom: 20px; color: var(--barkhat-wine);">Рейтинг салонов за период</h2>
             <div id="salonRatingTable" style="overflow-x: auto;">
                 <!-- Таблица генерируется через JavaScript -->
             </div>
         </div>\n\n'''
 
-    html += '        <h2 style="margin-bottom: 20px; color: #333;">📊 Качество по салонам</h2>\n'
+    html += '        <h2 style="margin-bottom: 20px; color: var(--barkhat-wine); padding: 0 20px;">Качество по салонам</h2>\n'
     html += '        <div class="salons-grid" id="salonsContainer">\n'
 
     # Генерация карточек салонов
@@ -940,7 +969,7 @@ def generate_html(data, periods):
             html += f'                </div>\n'
 
         # Флористы салона - контейнер для динамического обновления через JavaScript
-        html += f'                <h4 style="margin-top: 20px; margin-bottom: 15px; color: #667eea;">Флористы:</h4>\n'
+        html += f'                <h4 style="margin-top: 20px; margin-bottom: 15px; color: var(--barkhat-wine);">Флористы:</h4>\n'
         html += f'                <div id="florists-{salon.replace(" ", "-")}">\n'
         html += f'                    <!-- Флористы будут загружены через JavaScript -->\n'
         html += f'                </div>\n'
@@ -963,10 +992,10 @@ def generate_html(data, periods):
         </div>\n\n'''
 
     html += '''        <!-- Проблемные задачи по салонам -->
-        <div class="chart-section" style="margin: 30px 0; padding: 30px; background: #fff8e1; border-radius: 15px;">
-            <h2 style="margin-bottom: 20px; color: #f57c00;">⚠️ Задачи с низким баллом (требуют внимания)</h2>
-            <p style="color: #666; margin-bottom: 20px;">Показаны задачи с баллом ≤13 (max=14) или ≤16 (max=18) за выбранный период</p>
-            <div id="problemTasks" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+        <div class="chart-section" style="margin: 30px 20px; padding: 24px; background: #fff8f0; border: 1px solid var(--barkhat-pink-light); border-radius: 14px;">
+            <h2 style="margin-bottom: 16px; color: var(--barkhat-wine);">Задачи с низким баллом (требуют внимания)</h2>
+            <p style="color: var(--barkhat-gray); margin-bottom: 20px;">Показаны задачи с баллом ≤13 (max=14) или ≤16 (max=18) за выбранный период</p>
+            <div id="problemTasks" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px;">
                 <!-- Проблемные задачи генерируются через JavaScript -->
             </div>
         </div>
@@ -1184,13 +1213,13 @@ def generate_html(data, periods):
                     datasets: [{
                         label: 'Средний рейтинг',
                         data: data,
-                        borderColor: '#667eea',
-                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderColor: '#B26FA1',
+                        backgroundColor: 'rgba(225, 164, 201, 0.15)',
                         borderWidth: 3,
                         fill: true,
                         tension: 0.4,
                         pointRadius: 6,
-                        pointBackgroundColor: '#667eea',
+                        pointBackgroundColor: '#D19CC2',
                         pointBorderColor: '#fff',
                         pointBorderWidth: 2
                     }]
@@ -1215,9 +1244,9 @@ def generate_html(data, periods):
                         datalabels: {
                             anchor: 'end',
                             align: 'top',
-                            color: '#667eea',
+                            color: '#B26FA1',
                             font: {
-                                weight: 'bold',
+                                weight: '600',
                                 size: 14
                             },
                             formatter: function(value) {
@@ -1266,8 +1295,8 @@ def generate_html(data, periods):
                     afterDatasetsDraw: function(chart) {
                         const ctx = chart.ctx;
                         ctx.save();
-                        ctx.font = 'bold 14px Arial';
-                        ctx.fillStyle = '#667eea';
+                        ctx.font = '600 14px var(--font-body)';
+                        ctx.fillStyle = '#B26FA1';
                         ctx.textAlign = 'center';
 
                         chart.data.datasets.forEach((dataset, i) => {
@@ -1424,23 +1453,23 @@ def generate_html(data, periods):
             console.log('Top 3 salons:', salonAvg.slice(0, 3).map(s => `${s.name}: ${s.avg}`).join(', '));
 
             // Генерируем HTML таблицы
-            let tableHTML = '<table style="width: 100%; border-collapse: collapse;">';
-            tableHTML += '<thead><tr style="background: #667eea; color: white;">';
-            tableHTML += '<th style="padding: 12px; text-align: left; border-radius: 8px 0 0 0;">#</th>';
-            tableHTML += '<th style="padding: 12px; text-align: left;">Салон</th>';
-            tableHTML += '<th style="padding: 12px; text-align: center;">Рейтинг</th>';
-            tableHTML += '<th style="padding: 12px; text-align: center; border-radius: 0 8px 0 0;">Заказов</th>';
+            let tableHTML = '<table>';
+            tableHTML += '<thead><tr>';
+            tableHTML += '<th>#</th>';
+            tableHTML += '<th>Салон</th>';
+            tableHTML += '<th>Рейтинг</th>';
+            tableHTML += '<th>Заказов</th>';
             tableHTML += '</tr></thead><tbody>';
 
             salonAvg.forEach((salon, index) => {
-                const rowStyle = index % 2 === 0 ? 'background: white;' : 'background: #f8f9fa;';
+                const rowStyle = index % 2 === 0 ? 'background: var(--barkhat-white);' : 'background: #fafafa;';
                 const ratingColor = salon.avg >= 14 ? '#28a745' : salon.avg >= 12 ? '#ffc107' : '#dc3545';
 
                 tableHTML += '<tr style="' + rowStyle + '">';
-                tableHTML += '<td style="padding: 12px; font-weight: bold;">' + (index + 1) + '</td>';
-                tableHTML += '<td style="padding: 12px;">' + salon.name + '</td>';
-                tableHTML += '<td style="padding: 12px; text-align: center;"><span style="color: ' + ratingColor + '; font-weight: bold; font-size: 1.2em;">' + salon.avg.toFixed(1) + '</span></td>';
-                tableHTML += '<td style="padding: 12px; text-align: center;">' + salon.count + '</td>';
+                tableHTML += '<td>' + (index + 1) + '</td>';
+                tableHTML += '<td>' + salon.name + '</td>';
+                tableHTML += '<td style="text-align: center;"><span style="color: ' + ratingColor + '; font-weight: 600; font-size: 1.1em;">' + salon.avg.toFixed(1) + '</span></td>';
+                tableHTML += '<td style="text-align: center;">' + salon.count + '</td>';
                 tableHTML += '</tr>';
             });
 
@@ -1511,27 +1540,27 @@ def generate_html(data, periods):
 
                 if (worstTasks.length === 0) continue;
 
-                html += '<div style="background: white; border-radius: 10px; padding: 15px; border: 2px solid #ffcdd2;">';
-                html += '<h3 style="color: #c62828; margin-bottom: 15px;">' + salon + '</h3>';
+                html += '<div style="background: var(--barkhat-white); border-radius: 12px; padding: 16px; border: 1px solid var(--barkhat-pink-light);">';
+                html += '<h3 style="color: var(--barkhat-wine); margin-bottom: 12px;">' + salon + '</h3>';
 
                 worstTasks.forEach(task => {
-                    html += '<div style="margin-bottom: 12px; padding: 10px; background: #ffebee; border-radius: 5px;">';
-                    html += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">';
-                    html += '<span style="font-weight: bold; color: #c62828;">' + task.score + '/' + task.maxScore + '</span>';
+                    html += '<div style="margin-bottom: 10px; padding: 10px; background: #fff8f0; border-radius: 8px;">';
+                    html += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">';
+                    html += '<span style="font-weight: 600; color: var(--barkhat-wine);">' + task.score + '/' + task.maxScore + '</span>';
                     // Ссылка на задачу Pyrus - текст = номер заказа
                     if (task.link) {
-                        html += '<a href="' + task.link + '" target="_blank" style="color: #1976d2; text-decoration: underline;">' + task.orderId + '</a>';
+                        html += '<a href="' + task.link + '" target="_blank" style="color: var(--barkhat-pink-deep); text-decoration: underline;">' + task.orderId + '</a>';
                     } else if (task.orderId && task.orderId !== 'N/A') {
-                        html += '<span style="color: #666;">' + task.orderId + '</span>';
+                        html += '<span style="color: var(--barkhat-gray);">' + task.orderId + '</span>';
                     } else {
-                        html += '<span style="color: #999;">—</span>';
+                        html += '<span style="color: var(--barkhat-gray);">—</span>';
                     }
                     html += '</div>';
                     if (task.productType) {
-                        html += '<small style="color: #666;">' + task.productType + '</small>';
+                        html += '<small style="color: var(--barkhat-gray);">' + task.productType + '</small>';
                     }
                     if (task.florist) {
-                        html += '<br><small style="color: #666;">Флорист: ' + task.florist + '</small>';
+                        html += '<br><small style="color: var(--barkhat-gray);">Флорист: ' + task.florist + '</small>';
                     }
                     html += '</div>';
                 });
@@ -1540,7 +1569,7 @@ def generate_html(data, periods):
             }
 
             if (html === '') {
-                html = '<p style="text-align: center; color: #888; padding: 40px;">Нет задач с низким баллом за выбранный период 🎉</p>';
+                html = '<p style="text-align: center; color: var(--barkhat-gray); padding: 32px;">Нет задач с низким баллом за выбранный период</p>';
             }
 
             document.getElementById('problemTasks').innerHTML = html;
