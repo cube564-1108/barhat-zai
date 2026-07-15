@@ -23,8 +23,11 @@ load_dotenv()
 
 # Конфигурация
 SSO_SECRET = os.environ.get("BARKHAT_SSO_SECRET", "")
-if not SSO_SECRET:
-    raise ValueError("BARKHAT_SSO_SECRET environment variable is required")
+SSO_ENABLED = bool(SSO_SECRET)
+
+if not SSO_ENABLED:
+    print("⚠️  WARNING: BARKHAT_SSO_SECRET not set — SSO disabled, running in open mode")
+    print("⚠️  Set BARKHAT_SSO_SECRET environment variable to enable authentication")
 
 SESSION_SECRET = os.environ.get("SESSION_SECRET", os.urandom(32).hex())
 
@@ -61,6 +64,11 @@ def require_session(f):
     """Декоратор: требовать валидную сессию для эндпоинта."""
     @wraps(f)
     def decorated(*args, **kwargs):
+        # Если SSO отключён — пропускаем все запросы (open mode)
+        if not SSO_ENABLED:
+            request.user = {"name": "Anonymous", "sub": None}
+            return f(*args, **kwargs)
+
         session_token = request.cookies.get("session")
         if not session_token:
             abort(401)
