@@ -7,28 +7,144 @@ import os
 import sys
 import json
 import subprocess
-from datetime import datetime
-from datetime import timedelta
-from flask import Flask, request, jsonify, send_from_directory
+from datetime import datetime, timedelta
+from functools import wraps
+
+import jwt
+from flask import Flask, request, jsonify, send_from_directory, redirect, make_response, abort
 from flask_cors import CORS
 from dotenv import load_dotenv
+from itsdangerous import URLSafeTimedSerializer
 
 # Добавляем корневую директорию в path для импорта скриптов
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 load_dotenv()
 
+# Конфигурация
+SSO_SECRET = os.environ.get("BARKHAT_SSO_SECRET", "")
+if not SSO_SECRET:
+    raise ValueError("BARKHAT_SSO_SECRET environment variable is required")
+
+SESSION_SECRET = os.environ.get("SESSION_SECRET", os.urandom(32).hex())
+
 app = Flask(__name__, static_folder='.')
 CORS(app)
 
+# Сериализатор для сессий (itsdangerous)
+session_serializer = URLSafeTimedSerializer(SESSION_SECRET, salt="barkhat-quality-session")
+
+
+def create_session_cookie(user_claims):
+    """Создать подписанное значение куки сессии."""
+    # Сохраняем только нужные данные
+    session_data = {
+        "sub": user_claims.get("sub"),
+        "name": user_claims.get("name"),
+        "email": user_claims.get("email"),
+        "role": user_claims.get("role"),
+        "salon": user_claims.get("salon"),
+    }
+    return session_serializer.dumps(session_data)
+
+
+def verify_session(token):
+    """Проверить сессию и вернуть данные пользователя или None."""
+    try:
+        # Max_age=8 часов (28800 секунд)
+        return session_serializer.loads(token, max_age=28800)
+    except Exception:
+        return None
+
+
+def require_session(f):
+    """Декоратор: требовать валидную сессию для эндпоинта."""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        session_token = request.cookies.get("session")
+        if not session_token:
+            abort(401)
+        user = verify_session(session_token)
+        if not user:
+            abort(401)
+        # Добавляем пользователя в request context
+        request.user = user
+        return f(*args, **kwargs)
+    return decorated
+
+
+@app.route("/sso")
+def sso():
+    """
+    SSO entry point — проверяет JWT от БАРХАТ Пульс и завёт сессию.
+
+    GET /sso?token=<JWT>
+    """
+    token = request.args.get("token", "")
+    if not token:
+        abort(400, "Missing token parameter")
+
+    try:
+        # Проверяем подпись и claims JWT
+        claims = jwt.decode(
+            token,
+            SSO_SECRET,
+            algorithms=["HS256"],
+            audience="quality",
+            issuer="barkhat-pulse",
+            options={"require": ["exp", "aud", "iss", "sub"]}
+        )
+    except jwt.ExpiredSignatureError:
+        abort(403, "Token expired")
+    except jwt.InvalidTokenError as e:
+        abort(403, f"Invalid token: {str(e)}")
+    except Exception as e:
+        abort(403, f"Token verification failed: {str(e)}")
+
+    # Создаём нашу сессию
+    session_value = create_session_cookie(claims)
+
+    # Редирект на корень с установкой куки
+    resp = make_response(redirect("/"))
+    # Кука внутри iframe — нужны SameSite=None; Secure; Partitioned (CHIPS)
+    resp.headers.add(
+        "Set-Cookie",
+        f"session={session_value}; "
+        f"Secure; HttpOnly; SameSite=None; Partitioned; Path=/; Max-Age=28800"
+    )
+    return resp
+
+
+@app.route("/verify")
+def verify():
+    """
+    Эндпоинт для nginx auth_request — проверяет сессию.
+
+    Возвращает 200 если сессия валидна, 401 если нет.
+    """
+    session_token = request.cookies.get("session")
+    if not session_token:
+        abort(401)
+
+    user = verify_session(session_token)
+    if not user:
+        abort(401)
+
+    return jsonify({"status": "ok", "user": user["name"]}), 200
+
+
+
+
 
 @app.route('/')
+@require_session
 def index():
-    """Главная страница."""
+    """Главная страница (требует сессию)."""
     return send_from_directory('.', 'index.html')
 
 
 @app.route('/api/reconcile', methods=['POST'])
+@require_session
 def reconcile_orders():
     """
     Запустить сверку заказов за период.
