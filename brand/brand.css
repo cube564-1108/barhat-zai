@@ -38,21 +38,21 @@ a:hover {
 .bx-header {
   background: var(--barkhat-wine);
   color: var(--barkhat-white);
-  padding: 20px 28px;
+  padding: 12px 20px;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 .bx-header h1 {
   color: var(--barkhat-white);
   margin: 0;
-  font-size: 22px;
+  font-size: 18px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 .bx-header .bx-descr {
   color: rgba(255, 255, 255, 0.6);
-  font-size: 12px;
+  font-size: 11px;
   font-family: var(--font-body);
   font-weight: 300;
   margin-left: auto;
@@ -80,26 +80,26 @@ a:hover {
 /* KPI-плитки */
 .bx-kpi {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
 }
 .bx-kpi .card {
   background: var(--barkhat-white);
   border: 1px solid var(--barkhat-pink-light);
-  border-radius: 14px;
-  padding: 16px 18px;
+  border-radius: 10px;
+  padding: 12px 14px;
   box-shadow: 0 2px 8px rgba(65, 19, 48, 0.08);
 }
 .bx-kpi .card .value {
   font-family: var(--font-heading);
-  font-size: 28px;
+  font-size: 22px;
   color: var(--barkhat-wine);
   font-weight: 600;
   line-height: 1.2;
 }
 .bx-kpi .card .label {
   color: var(--barkhat-gray);
-  font-size: 12px;
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-top: 4px;
@@ -109,7 +109,7 @@ a:hover {
 table {
   border-collapse: collapse;
   width: 100%;
-  font-size: 14px;
+  font-size: 13px;
 }
 th {
   background: var(--barkhat-pink-light);
@@ -117,11 +117,11 @@ th {
   font-family: var(--font-heading);
   font-weight: 600;
   text-align: left;
-  padding: 10px 12px;
+  padding: 8px 10px;
   border-bottom: 1px solid var(--barkhat-pink);
 }
 td {
-  padding: 9px 12px;
+  padding: 7px 10px;
   border-bottom: 1px solid #eee;
 }
 tr:hover td {
@@ -132,35 +132,36 @@ tr:hover td {
 .bx-container {
   max-width: 1800px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 12px;
 }
 
 /* Карточка салона/секции */
 .bx-card {
   background: var(--barkhat-white);
   border: 1px solid var(--barkhat-pink-light);
-  border-radius: 14px;
-  padding: 20px;
-  margin-bottom: 20px;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 14px;
   box-shadow: 0 2px 8px rgba(65, 19, 48, 0.06);
 }
 
 /* Навигация по городам/салонам */
 .bx-nav {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 8px;
+  margin-bottom: 16px;
   flex-wrap: wrap;
 }
 .bx-nav-btn {
-  padding: 10px 18px;
+  padding: 6px 14px;
   border: 1px solid var(--barkhat-pink);
   background: var(--barkhat-white);
   color: var(--barkhat-pink-deep);
-  border-radius: 20px;
+  border-radius: 16px;
   cursor: pointer;
   font-family: var(--font-body);
   font-weight: 500;
+  font-size: 13px;
   transition: all 0.2s ease;
 }
 .bx-nav-btn.active,
