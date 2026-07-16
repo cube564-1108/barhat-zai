@@ -172,7 +172,8 @@ def pyrus_to_csv_format(tasks, form_structure):
 
         # Маппинг полей Pyrus ID на поля дашборда
         record = {
-            'Номер заказа': values.get(4, task.get('id', '')),  # field_id 4 = Номер заказа
+            'task_id': task.get('id', ''),  # ID задачи Pyrus для ссылки
+            'Номер заказа': values.get(4, ''),  # field_id 4 = Номер заказа
             'период': period,
             'ДАТА': date_display,
             'Салон': values.get(10, ''),  # field_id 10 = Салон
