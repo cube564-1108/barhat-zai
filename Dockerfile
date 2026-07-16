@@ -33,6 +33,9 @@ WORKDIR /app
 
 # Copy application files
 COPY reports/app.py /app/app.py
+COPY pyrus_export.py /app/
+COPY process_quality_data_full.py /app/
+COPY data/ /app/data/
 COPY index.html /usr/share/nginx/html/index.html
 COPY brand/tokens.css /usr/share/nginx/html/brand/tokens.css
 COPY brand/brand.css /usr/share/nginx/html/brand/brand.css

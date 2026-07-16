@@ -268,7 +268,14 @@ def update_quality_data():
         print("🔄 Начинаем обновление данных качества...")
 
         # Пути к скриптам и файлам
-        root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        # В контейнере app.py лежит в /app/, локально в reports/
+        if os.path.exists('/app/pyrus_export.py'):
+            # Контейнер
+            root_dir = '/app'
+        else:
+            # Локальная разработка
+            root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
         pyrus_script = os.path.join(root_dir, 'pyrus_export.py')
         process_script = os.path.join(root_dir, 'process_quality_data_full.py')
         data_dir = os.path.join(root_dir, 'data')
