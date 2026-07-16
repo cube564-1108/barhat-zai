@@ -770,24 +770,6 @@ def generate_html(data, periods):
     html += '            </div>\n'
     html += '        </div>\n\n'
 
-    html += '        <div class="kpi-cards">\n'
-    html += f'            <div class="kpi-card">\n'
-    html += f'                <h3>Средняя оценка</h3>\n'
-    html += f'                <div class="value" id="avgScore">{total_stats["avg_score"]}</div>\n'
-    html += f'                <div>из 18</div>\n'
-    html += f'            </div>\n'
-    html += f'            <div class="kpi-card">\n'
-    html += f'                <h3>Эталонных работ</h3>\n'
-    html += f'                <div class="value" id="perfectCount">{total_stats["perfect_count"]}</div>\n'
-    html += f'                <div>(<span id="perfectPercent">{total_stats["perfect_percentage"]}</span>%)</div>\n'
-    html += f'            </div>\n'
-    html += f'            <div class="kpi-card">\n'
-    html += f'                <h3>Городов</h3>\n'
-    html += f'                <div class="value">{len(cities)}</div>\n'
-    html += f'                <div>в аналитике</div>\n'
-    html += f'            </div>\n'
-    html += '        </div>\n\n'
-
     # Таблица среднего рейтинга салонов
     html += '''        <!-- Таблица среднего рейтинга салонов -->
         <div class="chart-section" style="margin: 30px 0; padding: 30px; background: #f8f9fa; border-radius: 15px;">
