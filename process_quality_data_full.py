@@ -175,7 +175,8 @@ def prepare_data_for_js(data):
             periods_dict[period] = record.get('period_sort', 0)
 
         orders.append({
-            'task_id': record.get('task_id', ''),  # ID задачи Pyrus для ссылки
+            'task_id': record.get('Номер заказа', ''),  # ID задачи Pyrus для ссылки
+            'order_id': record.get('Номер заказа', ''),  # Для отображения
             'city': record['city'],
             'period': period,
             'period_sort': record.get('period_sort', 0),
