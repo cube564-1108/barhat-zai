@@ -283,13 +283,22 @@ def update_quality_data():
 
         # Шаг 1: Выгрузка из Pyrus
         print("📥 Шаг 1: Выгрузка из Pyrus...")
+
+        # Подготавливаем переменные окружения для скриптов
+        script_env = {
+            **os.environ,
+            'PYTHONIOENCODING': 'utf-8',
+            'DATA_DIR': data_dir,
+            'OUTPUT_FILE': target_html
+        }
+
         cmd_pyrus = [sys.executable, pyrus_script]
         result_pyrus = subprocess.run(
             cmd_pyrus,
             capture_output=True,
             text=True,
             cwd=root_dir,
-            env={**os.environ, 'PYTHONIOENCODING': 'utf-8'}
+            env=script_env
         )
 
         if result_pyrus.returncode != 0:
@@ -308,7 +317,7 @@ def update_quality_data():
             capture_output=True,
             text=True,
             cwd=root_dir,
-            env={**os.environ, 'PYTHONIOENCODING': 'utf-8'}
+            env=script_env
         )
 
         if result_process.returncode != 0:

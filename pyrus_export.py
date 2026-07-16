@@ -7,13 +7,14 @@ import os
 import csv
 import json
 from datetime import datetime
-from dotenv import load_dotenv
 
-load_dotenv()
-
+# Переменные окружения (загружаются из Amvera, не из .env)
 TOKEN = os.getenv('PYRUS_ACCESS_TOKEN')
 LOGIN = os.getenv('PYRUS_LOGIN')
 FORM_ID = 1327961
+
+# Директория для выгрузки данных
+DATA_DIR = os.getenv('DATA_DIR', '/app/data')
 
 # Авторизация
 def auth():
@@ -162,13 +163,25 @@ def main():
 
     # Export
     print(f"\n[4/4] Exporting...")
+
+    # Создаём директорию для данных, если не существует
+    os.makedirs(DATA_DIR, exist_ok=True)
+
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
 
-    csv_file = f"pyrus_export_{FORM_ID}_{timestamp}.csv"
-    json_file = f"pyrus_export_{FORM_ID}_{timestamp}.json"
+    csv_file = os.path.join(DATA_DIR, f"pyrus_export_{FORM_ID}_{timestamp}.csv")
+    json_file = os.path.join(DATA_DIR, f"pyrus_export_{FORM_ID}_{timestamp}.json")
+
+    # Также сохраняем как "latest.csv" для удобства использования
+    latest_csv = os.path.join(DATA_DIR, "latest.csv")
 
     export_to_csv(tasks, form_structure, csv_file)
     export_to_json(tasks, json_file)
+
+    # Копируем в latest.csv
+    import shutil
+    shutil.copy(csv_file, latest_csv)
+    print(f"[OK] Latest export saved to {latest_csv}")
 
     print("\n" + "=" * 60)
     print("[OK] Export complete!")

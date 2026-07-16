@@ -8,10 +8,32 @@
 
 import csv
 import json
+import os
+import glob
 from collections import defaultdict
 
-CSV_FILE = r"C:\Users\Станислав\Downloads\Отчет по качеству сборки букетов - Export.csv"
-OUTPUT_FILE = r"c:\Users\Станислав\Desktop\barhat-zai\florist-quality-dashboard.html"
+# Пути для контейнера
+DATA_DIR = os.getenv('DATA_DIR', '/app/data')
+OUTPUT_FILE = os.getenv('OUTPUT_FILE', '/app/index.html')
+
+# Ищем последний CSV файл в директории данных
+def find_latest_csv():
+    """Находит последний CSV файл в директории данных"""
+    csv_files = glob.glob(os.path.join(DATA_DIR, 'pyrus_export_*.csv'))
+
+    if not csv_files:
+        # Если нет файлов с timestamp, пробуем latest.csv
+        latest_path = os.path.join(DATA_DIR, 'latest.csv')
+        if os.path.exists(latest_path):
+            return latest_path
+
+        raise FileNotFoundError(f"No CSV files found in {DATA_DIR}")
+
+    # Сортируем по времени изменения (последний первый)
+    csv_files.sort(key=os.path.getmtime, reverse=True)
+    return csv_files[0]
+
+CSV_FILE = find_latest_csv()
 
 CRITERIA_MAX = {
     'catalog_match': 2,
