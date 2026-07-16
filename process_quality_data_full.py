@@ -814,8 +814,6 @@ def generate_html(data, periods):
         html += f'                    <span class="badge {badge_class}">{badge_text}</span>\n'
         html += f'                </div>\n'
         html += f'                <div class="score-big" id="score-{salon.replace(" ", "-")}">{salon_data["avg_score"]}</div>\n'
-        # Индикатор тренда (пока пустой, заполнится в JavaScript)
-        html += f'                <div class="trend-indicator" id="trend-{salon.replace(" ", "-")}">Загрузка...</div>\n'
         html += f'                <div class="metrics">\n'
         html += f'                    <div class="metric">\n'
         html += f'                        <span>Заказов:</span>\n'
@@ -836,7 +834,7 @@ def generate_html(data, periods):
                 max_val = cat_data['max_score']
                 html += f'                    <div class="category-item">\n'
                 html += f'                        <span>{cat_name}:</span>\n'
-                html += f'                        <span><strong>{cat_data["avg_score"]}/{max_val}</strong> ({cat_data["percentage"]}%)</span>\n'
+                html += f'                        <span><strong>{cat_data["avg_score"]}/{max_val}</strong></span>\n'
                 html += f'                    </div>\n'
             html += f'                </div>\n'
 
@@ -848,26 +846,7 @@ def generate_html(data, periods):
             for f_key, f_data in sorted(salon_florists.items(),
                                   key=lambda x: x[1]['avg_score'], reverse=True):
                 html += f'                <div class="florist-card">\n'
-                html += f'                    <div class="name">{f_data["name"]}: {f_data["avg_score"]} ({f_data["count"]} зак.)</div>\n'
-
-                # Выводы по флористу
-                strong = []
-                weak = []
-                for crit_id, crit_data in f_data['criteria'].items():
-                    crit_name = CRITERIA_NAMES.get(crit_id, crit_id)
-                    if crit_data['percentage'] >= 90:
-                        strong.append(crit_name)
-                    elif crit_data['percentage'] < 70:
-                        weak.append(crit_name)
-
-                if strong or weak:
-                    html += f'                    <div class="insights">\n'
-                    if strong:
-                        html += f'                        <ul><span class="insight-strong">✅</span> {", ".join(strong)}</ul>\n'
-                    if weak:
-                        html += f'                        <ul><span class="insight-weak">⚠️</span> {", ".join(weak)}</ul>\n'
-                    html += f'                    </div>\n'
-
+                html += f'                    <div class="name">{f_data["name"]}: {f_data["avg_score"]}</div>\n'
                 html += f'                </div>\n'
 
         html += f'            </div>\n'
