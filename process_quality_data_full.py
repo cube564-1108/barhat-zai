@@ -12,28 +12,44 @@ import os
 import glob
 from collections import defaultdict
 
-# Пути для контейнера
+# Пути для контейнера (если данные передаются через переменные окружения)
 DATA_DIR = os.getenv('DATA_DIR', '/app/data')
 OUTPUT_FILE = os.getenv('OUTPUT_FILE', '/app/index.html')
+
+# Локальный путь для разработки (если нет DATA_DIR)
+LOCAL_CSV = r"C:\Users\Станислав\Downloads\Отчет по качеству сборки букетов - Export.csv"
+LOCAL_OUTPUT = r"c:\Users\Станислав\Desktop\barhat-zai\florist-quality-dashboard.html"
 
 # Ищем последний CSV файл в директории данных
 def find_latest_csv():
     """Находит последний CSV файл в директории данных"""
-    csv_files = glob.glob(os.path.join(DATA_DIR, 'pyrus_export_*.csv'))
+    # Для контейнера
+    if os.path.exists(DATA_DIR):
+        csv_files = glob.glob(os.path.join(DATA_DIR, 'pyrus_export_*.csv'))
 
-    if not csv_files:
-        # Если нет файлов с timestamp, пробуем latest.csv
-        latest_path = os.path.join(DATA_DIR, 'latest.csv')
-        if os.path.exists(latest_path):
-            return latest_path
+        if not csv_files:
+            # Если нет файлов с timestamp, пробуем latest.csv
+            latest_path = os.path.join(DATA_DIR, 'latest.csv')
+            if os.path.exists(latest_path):
+                return latest_path
 
-        raise FileNotFoundError(f"No CSV files found in {DATA_DIR}")
+            raise FileNotFoundError(f"No CSV files found in {DATA_DIR}")
 
-    # Сортируем по времени изменения (последний первый)
-    csv_files.sort(key=os.path.getmtime, reverse=True)
-    return csv_files[0]
+        # Сортируем по времени изменения (последний первый)
+        csv_files.sort(key=os.path.getmtime, reverse=True)
+        return csv_files[0]
 
-CSV_FILE = find_latest_csv()
+    # Для локальной разработки
+    if os.path.exists(LOCAL_CSV):
+        return LOCAL_CSV
+
+    raise FileNotFoundError("No CSV files found")
+
+# Определяем CSV_FILE (только если скрипт запущен напрямую, не как модуль)
+if __name__ == '__main__':
+    CSV_FILE = find_latest_csv()
+else:
+    CSV_FILE = None  # Будет передан через generate_html()
 
 CRITERIA_MAX = {
     'catalog_match': 2,
@@ -70,9 +86,12 @@ CRITERIA_NAMES = {
     'freshness': 'Свежесть'
 }
 
-def parse_csv():
+def parse_csv(csv_file=None):
+    if csv_file is None:
+        csv_file = CSV_FILE if CSV_FILE else find_latest_csv()
+
     data = []
-    with open(CSV_FILE, 'r', encoding='utf-8') as f:
+    with open(csv_file, 'r', encoding='utf-8') as f:
         reader = csv.DictReader(f)
         for row in reader:
             try:
@@ -1465,8 +1484,16 @@ def main():
     import io
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
-    print("Чтение CSV файла...")
-    data = parse_csv()
+    # Определяем путь к CSV и OUTPUT в зависимости от окружения
+    if os.path.exists(DATA_DIR):
+        csv_path = find_latest_csv()
+        output_path = OUTPUT_FILE
+    else:
+        csv_path = LOCAL_CSV
+        output_path = LOCAL_OUTPUT
+
+    print(f"Чтение CSV файла: {csv_path}")
+    data = parse_csv(csv_path)
     print(f"Загружено {len(data)} записей")
 
     print("Подготовка данных для JavaScript...")
@@ -1478,7 +1505,8 @@ def main():
     print("Генерация HTML дашборда...")
     html = generate_html(data, periods)
 
-    with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
+    print(f"Сохранение в: {output_path}")
+    with open(output_path, 'w', encoding='utf-8') as f:
         f.write(html)
 
     print(f"Дашборд сохранен: {OUTPUT_FILE}")
