@@ -4,12 +4,12 @@
 """
 
 import os
-import requests
+import ssl
+import urllib3
 from datetime import datetime
 from typing import List, Dict, Any
 import json
 from dotenv import load_dotenv
-import urllib3
 
 # Отключаем предупреждения SSL (для self-signed certificates)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -28,10 +28,19 @@ class RetailCRMExporter:
         if not self.api_url or not self.api_key:
             raise ValueError("RETAILCRM_API_URL и RETAILCRM_API_KEY должны быть указаны в .env")
 
-        # Создаем session с отключением прокси и SSL проверки
-        self.session = requests.Session()
-        self.session.trust_env = False  # Игнорировать системные прокси
-        self.session.verify = False  # Отключить проверку SSL сертификатов
+        # Создаём PoolManager с кастомным SSL контекстом
+        # Используем urllib3 напрямую для лучшего контроля SSL
+        self.ssl_context = ssl.create_default_context()
+        self.ssl_context.check_hostname = False
+        self.ssl_context.verify_mode = ssl.CERT_NONE
+
+        # Создаём HTTP connection pool без SSL проверки
+        self.http = urllib3.PoolManager(
+            cert_reqs='CERT_NONE',
+            assert_hostname=False,
+            timeout=urllib3.Timeout(connect=10, read=30),
+            retries=urllib3.Retry(total=3, backoff_factor=0.5)
+        )
 
         self.headers = {
             'X-API-Key': self.api_key
@@ -66,14 +75,26 @@ class RetailCRMExporter:
             url += "&fields=id,number,status,sum,totalSum,createdAt,updatedAt,customer,paymentType,deliveryType,cost"
 
             try:
-                response = self.session.get(
+                # Используем urllib3 вместо requests
+                response = self.http.request(
+                    'GET',
                     url,
-                    headers=self.headers,
-                    verify=False
+                    headers=self.headers
                 )
-                response.raise_for_status()
 
-                data = response.json()
+                if response.status != 200:
+                    print(f"Ошибка HTTP: {response.status}")
+                    if response.status >= 500:
+                        # Server error - продолжаем пытаться
+                        break
+                    elif response.status == 401:
+                        print("Ошибка авторизации - проверьте API ключ")
+                        break
+                    continue
+
+                # Парсим JSON ответ
+                import json
+                data = json.loads(response.data.decode('utf-8'))
 
                 if not data.get('success'):
                     error_msg = data.get('errorMsg', 'Unknown error')
@@ -96,8 +117,11 @@ class RetailCRMExporter:
 
                 offset += limit
 
-            except requests.exceptions.RequestException as e:
+            except urllib3.exceptions.HTTPError as e:
                 print(f"Ошибка при запросе: {e}")
+                break
+            except Exception as e:
+                print(f"Неожиданная ошибка: {e}")
                 break
 
         print(f"Всего загружено заказов: {len(all_orders)}")
