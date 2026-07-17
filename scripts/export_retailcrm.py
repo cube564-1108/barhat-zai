@@ -28,9 +28,10 @@ class RetailCRMExporter:
         if not self.api_url or not self.api_key:
             raise ValueError("RETAILCRM_API_URL и RETAILCRM_API_KEY должны быть указаны в .env")
 
-        # Создаем session с отключением прокси
+        # Создаем session с отключением прокси и SSL проверки
         self.session = requests.Session()
         self.session.trust_env = False  # Игнорировать системные прокси
+        self.session.verify = False  # Отключить проверку SSL сертификатов
 
         self.headers = {
             'X-API-Key': self.api_key
