@@ -1,0 +1,18 @@
+{
+  "title": "Бархат — Дашборд",
+  "categories": [
+    {
+      "id": "reports",
+      "title": "Отчеты",
+      "items": [
+        {
+          "id": "quality",
+          "title": "Качество сборки букетов",
+          "url": "/quality-report-14-18.html",
+          "icon": "📊"
+        }
+      ]
+    }
+  ],
+  "default": "quality"
+}
