@@ -28,6 +28,9 @@ load_dotenv()
 SSO_SECRET = os.environ.get("BARKHAT_SSO_SECRET", "")
 SSO_ENABLED = bool(SSO_SECRET)
 
+# Mock режим для аналитики продаж (для тестирования фронтенда без API)
+SALES_MOCK_MODE = os.environ.get("SALES_MOCK_MODE", "false").lower() == "true"
+
 if not SSO_ENABLED:
     print("⚠️  WARNING: BARKHAT_SSO_SECRET not set — SSO disabled, running in open mode")
     print("⚠️  Set BARKHAT_SSO_SECRET environment variable to enable authentication")
@@ -387,6 +390,74 @@ def health():
 
 
 # ============================================================
+# Mock данные для аналитики продаж
+# ============================================================
+
+def get_mock_current_month():
+    """Mock данные для текущего месяца."""
+    now = datetime.now()
+    from_date = datetime(now.year, now.month, 1).strftime('%Y-%m-%d %H:%M:%S')
+    return {
+        'period': {
+            'from': from_date,
+            'to': now.strftime('%Y-%m-%d %H:%M:%S'),
+            'label': f"1-{now.day} {now.strftime('%B %Y')}"
+        },
+        'salons': [
+            {'salon': 'Фрунзе', 'orders_count': 156, 'shipment_sum': 487500, 'avg_check': 3125},
+            {'salon': 'Советская', 'orders_count': 124, 'shipment_sum': 372000, 'avg_check': 3000},
+            {'salon': 'Малая Земля', 'orders_count': 98, 'shipment_sum': 343000, 'avg_check': 3500},
+            {'salon': 'Агрономическая', 'orders_count': 87, 'shipment_sum': 261000, 'avg_check': 3000},
+            {'salon': 'Онлайн', 'orders_count': 143, 'shipment_sum': 429000, 'avg_check': 3000}
+        ],
+        'total': {
+            'orders_count': 608,
+            'shipment_sum': 1892500,
+            'avg_check': 3112.5
+        },
+        'cached': False,
+        'generated_at': now.isoformat()
+    }
+
+def get_mock_monthly_comparison():
+    """Mock данные для месячного сравнения."""
+    now = datetime.now()
+    return {
+        'year': now.year,
+        'months': ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл'],
+        'current_year': [1250000, 1180000, 1420000, 1650000, 1580000, 1720000, 1892500],
+        'last_year': [980000, 920000, 1150000, 1280000, 1250000, 1380000, 1520000]
+    }
+
+def get_mock_compare_periods():
+    """Mock данные для сравнения периодов."""
+    return {
+        'period1': {
+            'from': '2026-07-01 00:00:00',
+            'to': '2026-07-15 23:59:59',
+            'orders_count': 312,
+            'shipment_sum': 946250,
+            'avg_check': 3033.0
+        },
+        'period2': {
+            'from': '2026-06-01 00:00:00',
+            'to': '2026-06-15 23:59:59',
+            'orders_count': 287,
+            'shipment_sum': 861000,
+            'avg_check': 3000.0
+        },
+        'diff': {
+            'orders_count': 25,
+            'orders_count_percent': 8.7,
+            'shipment_sum': 85250,
+            'shipment_sum_percent': 9.9,
+            'avg_check': 33.0,
+            'avg_check_percent': 1.1
+        }
+    }
+
+
+# ============================================================
 # API эндпоинты аналитики продаж
 # ============================================================
 
@@ -403,6 +474,10 @@ def api_sales_current_month():
     Returns:
         JSON с данными по салонам за месяц
     """
+    # Mock режим для тестирования фронтенда
+    if SALES_MOCK_MODE:
+        return jsonify(get_mock_current_month())
+
     try:
         exporter = get_sales_exporter()
 
@@ -475,6 +550,10 @@ def api_sales_compare_periods():
     Returns:
         JSON с сравнением двух периодов
     """
+    # Mock режим для тестирования фронтенда
+    if SALES_MOCK_MODE:
+        return jsonify(get_mock_compare_periods())
+
     try:
         from_date = request.args.get('from')
         to_date = request.args.get('to')
@@ -536,6 +615,10 @@ def api_sales_monthly_comparison():
     Returns:
         JSON с данными по месяцам
     """
+    # Mock режим для тестирования фронтенда
+    if SALES_MOCK_MODE:
+        return jsonify(get_mock_monthly_comparison())
+
     try:
         year = request.args.get('year', type=int)
 

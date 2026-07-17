@@ -13,6 +13,13 @@ from typing import List, Dict, Any
 import json
 from dotenv import load_dotenv
 
+# Пробуем импортировать requests для fallback
+try:
+    import requests
+    REQUESTS_AVAILABLE = True
+except ImportError:
+    REQUESTS_AVAILABLE = False
+
 # Настраиваем логирование в stderr
 logging.basicConfig(
     level=logging.INFO,
@@ -38,6 +45,8 @@ class RetailCRMExporter:
         # Логируем для отладки (без ключа!)
         logger.info(f"RetailCRM URL: {self.api_url}")
         logger.info(f"API Key: {'***SET***' if self.api_key else 'NOT SET'}")
+        logger.info(f"Python version: {sys.version}")
+        logger.info(f"urllib3 version: {urllib3.__version__}")
 
         if not self.api_url or not self.api_key:
             raise ValueError("RETAILCRM_API_URL и RETAILCRM_API_KEY должны быть указаны в .env")
@@ -112,6 +121,13 @@ class RetailCRMExporter:
             'X-API-Key': self.api_key
         }
 
+        # Выбираем метод запроса: requests предпочтительнее
+        self.use_requests = REQUESTS_AVAILABLE
+        if self.use_requests:
+            logger.info("Using requests library for API calls")
+        else:
+            logger.info("Using urllib3 for API calls")
+
     def fetch_orders(self, from_date: str, to_date: str = None) -> List[Dict[str, Any]]:
         """
         Выгрузить заказы за период.
@@ -140,29 +156,58 @@ class RetailCRMExporter:
                 url += f"&toDate={to_date}"
             url += "&fields=id,number,status,sum,totalSum,createdAt,updatedAt,customer,paymentType,deliveryType,cost"
 
+            logger.info(f"Fetching URL: {url}")
+
             try:
-                # Используем urllib3
-                response = self.http.request(
-                    'GET',
-                    url,
-                    headers=self.headers
-                )
+                if self.use_requests:
+                    # Используем requests с отключенной верификацией SSL
+                    logger.info("Using requests library...")
+                    response = requests.get(
+                        url,
+                        headers=self.headers,
+                        timeout=30,
+                        verify=False  # Отключаем проверку SSL
+                    )
+                    logger.info(f"Got response: status={response.status}")
 
-                if response.status != 200:
-                    print(f"Ошибка HTTP: {response.status}")
-                    if response.status >= 500:
-                        # Server error - прерываем
-                        break
-                    elif response.status == 401:
-                        print("Ошибка авторизации - проверьте API ключ")
-                        break
-                    elif response.status == 403:
-                        print("Ошибка доступа - нет прав на ресурс")
-                        break
-                    continue
+                    if response.status_code != 200:
+                        print(f"Ошибка HTTP: {response.status_code}")
+                        if response.status_code >= 500:
+                            break
+                        elif response.status_code == 401:
+                            print("Ошибка авторизации - проверьте API ключ")
+                            break
+                        elif response.status_code == 403:
+                            print("Ошибка доступа - нет прав на ресурс")
+                            break
+                        continue
 
-                # Парсим JSON ответ
-                data = json.loads(response.data.decode('utf-8'))
+                    data = response.json()
+
+                else:
+                    # Fallback на urllib3
+                    logger.info("Using urllib3...")
+                    response = self.http.request(
+                        'GET',
+                        url,
+                        headers=self.headers,
+                        retries=False
+                    )
+                    logger.info(f"Got response: status={response.status}")
+
+                    if response.status != 200:
+                        print(f"Ошибка HTTP: {response.status}")
+                        if response.status >= 500:
+                            break
+                        elif response.status == 401:
+                            print("Ошибка авторизации - проверьте API ключ")
+                            break
+                        elif response.status == 403:
+                            print("Ошибка доступа - нет прав на ресурс")
+                            break
+                        continue
+
+                    data = json.loads(response.data.decode('utf-8'))
 
                 if not data.get('success'):
                     error_msg = data.get('errorMsg', 'Unknown error')
@@ -186,14 +231,21 @@ class RetailCRMExporter:
                 offset += limit
 
             except urllib3.exceptions.HTTPError as e:
-                print(f"Ошибка HTTP при запросе: {e}")
+                logger.error(f"HTTPError: {type(e).__name__}: {e}")
                 break
             except urllib3.exceptions.SSLError as e:
-                print(f"Ошибка SSL при запросе: {e}")
-                print("Это может быть связано с проблемами сертификата RetailCRM")
+                logger.error(f"SSLError: {type(e).__name__}: {e}")
+                logger.error("Это может быть связано с проблемами сертификата RetailCRM")
+                import traceback
+                traceback.print_exc()
+                break
+            except requests.exceptions.SSLError as e:
+                logger.error(f"Requests SSLError: {type(e).__name__}: {e}")
+                import traceback
+                traceback.print_exc()
                 break
             except Exception as e:
-                print(f"Неожиданная ошибка: {type(e).__name__}: {e}")
+                logger.error(f"Unexpected error: {type(e).__name__}: {e}")
                 import traceback
                 traceback.print_exc()
                 break
