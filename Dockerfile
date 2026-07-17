@@ -37,6 +37,7 @@ COPY pyrus_export.py /app/
 COPY process_quality_data_full.py /app/
 COPY data/ /app/data/
 COPY index.html /usr/share/nginx/html/index.html
+COPY quality-report-14-18.html /usr/share/nginx/html/quality-report-14-18.html
 COPY brand/tokens.css /usr/share/nginx/html/brand/tokens.css
 COPY brand/brand.css /usr/share/nginx/html/brand/brand.css
 COPY nginx.conf /etc/nginx/nginx.conf
