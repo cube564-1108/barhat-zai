@@ -34,7 +34,6 @@ WORKDIR /app
 # Copy application files
 COPY reports/app.py /app/app.py
 COPY pyrus_export.py /app/
-COPY export_retailcrm.py /app/
 COPY process_quality_data_full.py /app/
 COPY scripts/export_retailcrm.py /app/scripts/export_retailcrm.py
 COPY scripts/export_retailcrm_sales.py /app/scripts/export_retailcrm_sales.py
