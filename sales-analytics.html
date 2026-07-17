@@ -693,16 +693,118 @@
         customRange.style.display = 'flex';
       } else {
         customRange.style.display = 'none';
-        // TODO: загрузка данных для выбранного периода
+        loadPeriodData(select.value);
       }
     }
 
-    function applyCustomPeriod() {
+    // Загрузка данных за период
+    async function loadPeriodData(periodType) {
+      showLoading(true);
+      hideError();
+
+      try {
+        const now = new Date();
+        let year = now.getFullYear();
+        let month = now.getMonth() + 1;
+
+        switch (periodType) {
+          case 'current':
+            // Текущий месяц - данные уже есть
+            month = now.getMonth() + 1;
+            break;
+          case 'last':
+            // Прошлый месяц
+            if (month === 1) {
+              month = 12;
+              year = year - 1;
+            } else {
+              month = month - 1;
+            }
+            break;
+          case 'quarter':
+            // Текущий квартал - пока загружаем текущий месяц
+            month = now.getMonth() + 1;
+            break;
+          case 'year':
+            // Этот год - пока загружаем текущий месяц
+            month = now.getMonth() + 1;
+            break;
+        }
+
+        const data = await fetch(`/api/sales/current-month?year=${year}&month=${month}`);
+        if (!data.ok) throw new Error(`HTTP ${data.status}`);
+        const result = await data.json();
+
+        currentData = result;
+        renderKPI(result);
+        renderSalonChart(result);
+        renderTable(result);
+        updateCachedBadge(result.cached);
+
+      } catch (error) {
+        showError('Ошибка загрузки данных: ' + error.message);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    // Применить自定义 период
+    async function applyCustomPeriod() {
       const from = document.getElementById('dateFrom').value;
       const to = document.getElementById('dateTo').value;
-      if (from && to) {
-        // TODO: загрузка данных за custom период
-        console.log('Load:', from, to);
+
+      if (!from || !to) {
+        alert('Выберите даты начала и конца периода');
+        return;
+      }
+
+      showLoading(true);
+      hideError();
+
+      try {
+        // Загружаем данные за custom период (сравнение с прошлым периодом)
+        const response = await fetch(`/api/sales/compare-periods?from=${from}&to=${to}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        const result = await response.json();
+
+        // Для compare-periods структура другая, адаптируем для отображения
+        const adaptedData = {
+          period: {
+            from: result.period_current?.from || from,
+            to: result.period_current?.to || to,
+            label: `${from} - ${to}`
+          },
+          salons: result.period_current?.salons || [],
+          total: result.period_current?.total || {orders_count: 0, shipment_sum: 0, avg_check: 0},
+          cached: result.cached || false
+        };
+
+        currentData = adaptedData;
+        renderKPI(adaptedData);
+        renderSalonChart(adaptedData);
+        renderTable(adaptedData);
+        updateCachedBadge(false);
+
+      } catch (error) {
+        showError('Ошибка загрузки данных: ' + error.message);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    // Очистить кэш
+    async function clearCache() {
+      showLoading(true);
+      try {
+        const response = await fetch('/api/sales/cache/clear', { method: 'POST' });
+        if (!response.ok) throw new Error('Failed to clear cache');
+
+        // Перезагружаем данные
+        await loadData();
+      } catch (error) {
+        showError('Ошибка очистки кэша: ' + error.message);
+        showLoading(false);
       }
     }
   </script>

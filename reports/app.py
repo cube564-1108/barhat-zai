@@ -404,11 +404,11 @@ def get_mock_current_month():
             'label': f"1-{now.day} {now.strftime('%B %Y')}"
         },
         'salons': [
-            {'salon': 'Фрунзе', 'orders_count': 156, 'shipment_sum': 487500, 'avg_check': 3125},
-            {'salon': 'Советская', 'orders_count': 124, 'shipment_sum': 372000, 'avg_check': 3000},
-            {'salon': 'Малая Земля', 'orders_count': 98, 'shipment_sum': 343000, 'avg_check': 3500},
-            {'salon': 'Агрономическая', 'orders_count': 87, 'shipment_sum': 261000, 'avg_check': 3000},
-            {'salon': 'Онлайн', 'orders_count': 143, 'shipment_sum': 429000, 'avg_check': 3000}
+            {'name': 'Фрунзе', 'orders_count': 156, 'shipment_sum': 487500, 'avg_check': 3125},
+            {'name': 'Советская', 'orders_count': 124, 'shipment_sum': 372000, 'avg_check': 3000},
+            {'name': 'Малая Земля', 'orders_count': 98, 'shipment_sum': 343000, 'avg_check': 3500},
+            {'name': 'Агрономическая', 'orders_count': 87, 'shipment_sum': 261000, 'avg_check': 3000},
+            {'name': 'Онлайн', 'orders_count': 143, 'shipment_sum': 429000, 'avg_check': 3000}
         ],
         'total': {
             'orders_count': 608,
@@ -422,38 +422,62 @@ def get_mock_current_month():
 def get_mock_monthly_comparison():
     """Mock данные для месячного сравнения."""
     now = datetime.now()
+    month_names = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл']
+    current_values = [1250000, 1180000, 1420000, 1650000, 1580000, 1720000, 1892500]
+
     return {
         'year': now.year,
-        'months': ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл'],
-        'current_year': [1250000, 1180000, 1420000, 1650000, 1580000, 1720000, 1892500],
-        'last_year': [980000, 920000, 1150000, 1280000, 1250000, 1380000, 1520000]
+        'months': [
+            {
+                'month': i + 1,
+                'month_name': month_names[i],
+                'total': {'shipment_sum': current_values[i]}
+            }
+            for i in range(len(month_names))
+        ]
     }
 
 def get_mock_compare_periods():
     """Mock данные для сравнения периодов."""
     return {
-        'period1': {
+        'period_current': {
             'from': '2026-07-01 00:00:00',
             'to': '2026-07-15 23:59:59',
-            'orders_count': 312,
-            'shipment_sum': 946250,
-            'avg_check': 3033.0
+            'salons': [
+                {'name': 'Фрунзе', 'orders_count': 78, 'shipment_sum': 243750, 'avg_check': 3125},
+                {'name': 'Советская', 'orders_count': 62, 'shipment_sum': 186000, 'avg_check': 3000},
+                {'name': 'Малая Земля', 'orders_count': 49, 'shipment_sum': 171500, 'avg_check': 3500},
+                {'name': 'Агрономическая', 'orders_count': 44, 'shipment_sum': 132000, 'avg_check': 3000},
+                {'name': 'Онлайн', 'orders_count': 71, 'shipment_sum': 213500, 'avg_check': 3000}
+            ],
+            'total': {
+                'orders_count': 304,
+                'shipment_sum': 946750,
+                'avg_check': 3114.47
+            }
         },
-        'period2': {
+        'period_compare': {
             'from': '2026-06-01 00:00:00',
             'to': '2026-06-15 23:59:59',
-            'orders_count': 287,
-            'shipment_sum': 861000,
-            'avg_check': 3000.0
+            'salons': [
+                {'name': 'Фрунзе', 'orders_count': 72, 'shipment_sum': 225000, 'avg_check': 3125},
+                {'name': 'Советская', 'orders_count': 58, 'shipment_sum': 174000, 'avg_check': 3000},
+                {'name': 'Малая Земля', 'orders_count': 45, 'shipment_sum': 157500, 'avg_check': 3500},
+                {'name': 'Агрономическая', 'orders_count': 40, 'shipment_sum': 120000, 'avg_check': 3000},
+                {'name': 'Онлайн', 'orders_count': 65, 'shipment_sum': 195000, 'avg_check': 3000}
+            ],
+            'total': {
+                'orders_count': 280,
+                'shipment_sum': 871500,
+                'avg_check': 3112.5
+            }
         },
-        'diff': {
-            'orders_count': 25,
-            'orders_count_percent': 8.7,
-            'shipment_sum': 85250,
-            'shipment_sum_percent': 9.9,
-            'avg_check': 33.0,
-            'avg_check_percent': 1.1
-        }
+        'changes': {
+            'orders_count': 8.57,
+            'shipment_sum': 8.62,
+            'avg_check': 0.06
+        },
+        'cached': False
     }
 
 
