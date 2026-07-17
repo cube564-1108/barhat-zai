@@ -68,8 +68,8 @@ CATEGORY_MAX = {
     'Цветочный букет': 14,
     'Коробочка с клубникой или бананами': 14,
     'Клубнично-цветочный букет': 18,
-    'Цветочный бокс': 18,
-    'Коробочка+цветочный букет': 14,
+    'Цветочный бокс': 14,
+    'Коробочка+цветочный букет': 18,
     'Клубничный бокс': 14,
     'Цветочно-клубничный бокс': 18
 }
@@ -176,7 +176,7 @@ def prepare_data_for_js(data):
 
         orders.append({
             'task_id': record.get('task_id', ''),  # ID задачи Pyrus для ссылки
-            'order_id': record.get('Номер заказа', ''),  # Номер заказа для отображения
+            'order_id': record.get('order_id', '') or record.get('Номер заказа', ''),  # Номер заказа для отображения
             'city': record['city'],
             'period': period,
             'period_sort': record.get('period_sort', 0),
@@ -398,8 +398,24 @@ def generate_html(data, periods):
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Отчет по качеству сборки букетов</title>
+    <title>Отчет по качеству сборки букетов — Бархат</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vollkorn:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
+        /* БАРХАТ — официальная айдентика из brand/tokens.css */
+        :root {{
+            --barkhat-wine:        #411330;
+            --barkhat-pink:        #D19CC2;
+            --barkhat-pink-bright: #E1A4C9;
+            --barkhat-pink-light:  #E4C2DD;
+            --barkhat-pink-deep:   #B26FA1;
+            --barkhat-gray-dark:   #3C3C3C;
+            --barkhat-gray:        #6F6F6F;
+            --barkhat-white:       #FFFFFF;
+            --barkhat-gradient:    linear-gradient(135deg, #E1A4C9 0%, #B26FA1 100%);
+        }}
+
         * {{
             margin: 0;
             padding: 0;
@@ -407,140 +423,178 @@ def generate_html(data, periods):
         }}
 
         body {{
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
-            color: #333;
+            font-family: 'Inter', 'PT Sans', system-ui, -apple-system, sans-serif;
+            background: var(--barkhat-white);
+            padding: 12px;
+            color: var(--barkhat-gray-dark);
+            font-weight: 300;
+            line-height: 1.5;
         }}
 
         .container {{
             max-width: 1800px;
             margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            background: var(--barkhat-white);
+            padding: 12px;
         }}
 
         .header {{
-            text-align: center;
-            margin-bottom: 40px;
-            padding-bottom: 20px;
-            border-bottom: 3px solid #667eea;
+            background: var(--barkhat-wine);
+            color: var(--barkhat-white);
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }}
 
         .header h1 {{
-            color: #667eea;
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-family: 'Vollkorn', Georgia, serif;
+            color: var(--barkhat-white);
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }}
+
+        .header p {{
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 11px;
+            font-weight: 300;
+            margin-left: auto;
         }}
 
         .filters {{
             display: flex;
-            gap: 20px;
-            margin-bottom: 30px;
+            gap: 12px;
+            margin-bottom: 16px;
             flex-wrap: wrap;
+            align-items: center;
         }}
 
         .filter-group {{
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }}
 
         .filter-group label {{
-            font-weight: 600;
-            color: #666;
+            font-weight: 500;
+            color: var(--barkhat-gray);
+            font-size: 13px;
         }}
 
         .filter-select {{
-            padding: 10px 15px;
-            border: 2px solid #667eea;
+            padding: 9px 16px;
+            border: 1px solid var(--barkhat-pink-light);
             border-radius: 10px;
-            font-size: 14px;
-            background: white;
-            color: #333;
+            font-size: 13px;
+            background: var(--barkhat-white);
+            color: var(--barkhat-gray-dark);
             cursor: pointer;
-            min-width: 150px;
+            min-width: 140px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s ease;
+        }}
+
+        .filter-select:hover {{
+            border-color: var(--barkhat-pink);
+        }}
+
+        .filter-select:focus {{
+            outline: none;
+            border-color: var(--barkhat-pink-deep);
         }}
 
         .kpi-cards {{
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin-bottom: 16px;
         }}
 
         .kpi-card {{
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 25px;
-            border-radius: 15px;
-            color: white;
+            background: var(--barkhat-gradient);
+            padding: 12px 14px;
+            border-radius: 10px;
+            color: var(--barkhat-white);
             text-align: center;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 2px 8px rgba(65, 19, 48, 0.08);
         }}
 
         .kpi-card h3 {{
-            font-size: 0.9em;
+            font-size: 11px;
             opacity: 0.9;
-            margin-bottom: 10px;
+            margin-bottom: 4px;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }}
 
         .kpi-card .value {{
-            font-size: 2.5em;
-            font-weight: bold;
+            font-family: 'Vollkorn', Georgia, serif;
+            font-size: 22px;
+            font-weight: 600;
+            line-height: 1.2;
         }}
 
         .city-nav {{
             display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
+            gap: 8px;
+            margin-bottom: 16px;
             flex-wrap: wrap;
         }}
 
         .city-btn {{
-            padding: 12px 24px;
-            border: 2px solid #667eea;
-            background: white;
-            color: #667eea;
-            border-radius: 25px;
+            padding: 6px 14px;
+            border: 1px solid var(--barkhat-pink);
+            background: var(--barkhat-white);
+            color: var(--barkhat-pink-deep);
+            border-radius: 16px;
             cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 13px;
+            transition: all 0.2s ease;
+            font-family: 'Inter', sans-serif;
         }}
 
         .city-btn.active, .city-btn:hover {{
-            background: #667eea;
-            color: white;
+            background: var(--barkhat-gradient);
+            color: var(--barkhat-white);
+            border-color: transparent;
         }}
 
         .salon-nav {{
             display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
+            gap: 6px;
+            margin-bottom: 16px;
             flex-wrap: wrap;
         }}
 
         .salon-btn {{
-            padding: 10px 20px;
-            border: 2px solid #764ba2;
-            background: white;
-            color: #764ba2;
-            border-radius: 20px;
+            padding: 5px 12px;
+            border: 1px solid var(--barkhat-pink-light);
+            background: var(--barkhat-white);
+            color: var(--barkhat-pink-deep);
+            border-radius: 12px;
             cursor: pointer;
-            font-weight: 600;
-            font-size: 0.9em;
-            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 12px;
+            transition: all 0.2s ease;
+            font-family: 'Inter', sans-serif;
         }}
 
         .salon-btn.active, .salon-btn:hover {{
-            background: #764ba2;
-            color: white;
+            background: var(--barkhat-pink-light);
+            color: var(--barkhat-wine);
+            border-color: var(--barkhat-pink-light);
         }}
 
         .salon-section {{
             display: none;
-            margin-bottom: 40px;
+            margin-bottom: 16px;
         }}
 
         .salon-section.active {{
@@ -549,95 +603,112 @@ def generate_html(data, periods):
 
         .salons-grid {{
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 14px;
+            margin-bottom: 16px;
         }}
 
         .salon-card {{
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 20px;
-            border: 2px solid #e0e0e0;
+            background: var(--barkhat-white);
+            border-radius: 10px;
+            padding: 14px;
+            border: 1px solid var(--barkhat-pink-light);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(65, 19, 48, 0.06);
+        }}
+
+        .salon-card:hover {{
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(65, 19, 48, 0.12);
+            border-color: var(--barkhat-pink);
         }}
 
         .salon-card .header {{
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }}
 
         .salon-card .name {{
-            font-size: 1.2em;
-            font-weight: bold;
-            color: #333;
+            font-family: 'Vollkorn', Georgia, serif;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--barkhat-white);
         }}
 
         .badge {{
-            padding: 5px 12px;
-            border-radius: 15px;
-            font-size: 0.8em;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 11px;
             font-weight: 600;
         }}
 
-        .badge-good {{ background: #d4edda; color: #155724; }}
-        .badge-avg {{ background: #fff3cd; color: #856404; }}
-        .badge-bad {{ background: #f8d7da; color: #721c24; }}
+        .badge-good {{ background: #D8E8D8; color: #2D5A2D; }}
+        .badge-avg {{ background: #FFF0C0; color: #6A5A2A; }}
+        .badge-bad {{ background: #F8D8D8; color: #6A2A2A; }}
 
         .score-big {{
-            font-size: 2em;
-            font-weight: bold;
-            color: #667eea;
+            font-family: 'Vollkorn', Georgia, serif;
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--barkhat-wine);
             text-align: center;
-            margin: 15px 0;
+            margin: 12px 0;
+            line-height: 1.2;
         }}
 
         .metrics {{
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-bottom: 15px;
+            gap: 8px;
+            margin-bottom: 12px;
         }}
 
         .metric {{
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #e0e0e0;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--barkhat-pink-light);
+            font-size: 12px;
+            color: var(--barkhat-gray);
         }}
 
         .categories-list {{
-            margin-top: 15px;
+            margin-top: 12px;
         }}
 
         .category-item {{
             display: flex;
             justify-content: space-between;
-            padding: 5px 0;
-            font-size: 0.9em;
+            padding: 4px 0;
+            font-size: 12px;
+            color: var(--barkhat-gray);
         }}
 
         .florist-card {{
-            background: white;
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
-            border: 1px solid #e0e0e0;
+            background: var(--barkhat-white);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid var(--barkhat-pink-light);
         }}
 
         .florist-card .name {{
+            font-family: 'Vollkorn', Georgia, serif;
             font-weight: 600;
-            margin-bottom: 10px;
-            color: #333;
+            margin-bottom: 6px;
+            color: var(--barkhat-wine);
+            font-size: 13px;
         }}
 
         .insights {{
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 15px;
-            font-size: 0.85em;
+            background: #F8F9FA;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 11px;
         }}
 
         .insights ul {{
@@ -645,47 +716,37 @@ def generate_html(data, periods):
         }}
 
         .insights li {{
-            padding: 3px 0;
+            padding: 2px 0;
         }}
 
-        .insight-strong {{ color: #27ae60; }}
-        .insight-weak {{ color: #e74c3c; }}
-
-        /* Кликабельные карточки салонов */
-        .salon-card {{
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }}
-        .salon-card:hover {{
-            transform: translateY(-4px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-        }}
+        .insight-strong {{ color: #2D5A2D; }}
+        .insight-weak {{ color: #6A2A2A; }}
 
         /* Индикатор тренда */
         .trend-indicator {{
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            font-weight: 600;
-            margin-top: 10px;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 500;
+            margin-top: 8px;
         }}
         .trend-improving {{
-            background: #d4edda;
-            color: #155724;
+            background: #D8E8D8;
+            color: #2D5A2D;
         }}
         .trend-worsening {{
-            background: #f8d7da;
-            color: #721c24;
+            background: #F8D8D8;
+            color: #6A2A2A;
         }}
         .trend-stable {{
-            background: #fff3cd;
-            color: #856404;
+            background: #FFF0C0;
+            color: #6A5A2A;
         }}
         .trend-arrow {{
-            font-size: 1.2em;
+            font-size: 12px;
         }}
 
         /* Модальное окно */
@@ -696,7 +757,8 @@ def generate_html(data, periods):
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(65, 19, 48, 0.85);
+            backdrop-filter: blur(4px);
             z-index: 1000;
             justify-content: center;
             align-items: center;
@@ -705,55 +767,64 @@ def generate_html(data, periods):
             display: flex;
         }}
         .modal-content {{
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            max-width: 900px;
+            background: var(--barkhat-white);
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 700px;
             width: 90%;
             max-height: 90vh;
             overflow-y: auto;
             position: relative;
+            box-shadow: 0 8px 32px rgba(65, 19, 48, 0.25);
         }}
         .modal-close {{
             position: absolute;
-            top: 20px;
-            right: 20px;
-            background: #f0f0f0;
+            top: 16px;
+            right: 16px;
+            background: var(--barkhat-pink-light);
             border: none;
-            width: 40px;
-            height: 40px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             cursor: pointer;
-            font-size: 20px;
+            font-size: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background 0.2s;
+            transition: all 0.2s;
+            color: var(--barkhat-wine);
         }}
         .modal-close:hover {{
-            background: #e0e0e0;
+            background: var(--barkhat-pink);
         }}
         .modal-title {{
-            font-size: 1.8em;
-            color: #667eea;
-            margin-bottom: 10px;
+            font-family: 'Vollkorn', Georgia, serif;
+            font-size: 18px;
+            color: var(--barkhat-wine);
+            margin-bottom: 4px;
+            font-weight: 600;
         }}
         .modal-subtitle {{
-            color: #666;
-            margin-bottom: 30px;
+            color: var(--barkhat-gray);
+            margin-bottom: 16px;
+            font-size: 13px;
         }}
 
         @media (max-width: 768px) {{
-            .header h1 {{ font-size: 1.8em; }}
+            .container {{ padding: 8px; }}
+            .salons-grid {{ grid-template-columns: 1fr; }}
+            .header h1 {{ font-size: 18px; }}
             .kpi-cards {{ grid-template-columns: 1fr; }}
             .salons-grid {{ grid-template-columns: 1fr; }}
+            .filter-select {{ min-width: 140px; }}
         }}
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Отчет по качеству сборки букетов</h1>
+            <h1>Качество сборки букетов</h1>
+            <p class="brand-subtitle">Бархат — свежая флористика</p>
             <p>Всего заказов: <span id="totalOrders">{total_stats['total_orders']:,}</span></p>
         </div>
 
@@ -773,14 +844,14 @@ def generate_html(data, periods):
 
     # Таблица среднего рейтинга салонов
     html += '''        <!-- Таблица среднего рейтинга салонов -->
-        <div class="chart-section" style="margin: 30px 0; padding: 30px; background: #f8f9fa; border-radius: 15px;">
-            <h2 style="margin-bottom: 20px; color: #667eea;">📊 Рейтинг салонов за период</h2>
+        <div class="bx-card" style="margin: 16px 0;">
+            <h2 style="margin-bottom: 12px; color: var(--barkhat-wine);">Рейтинг салонов за период</h2>
             <div id="salonRatingTable" style="overflow-x: auto;">
                 <!-- Таблица генерируется через JavaScript -->
             </div>
         </div>\n\n'''
 
-    html += '        <h2 style="margin-bottom: 20px; color: #333;">📊 Качество по салонам</h2>\n'
+    html += '        <h2 style="margin-bottom: 12px; color: var(--barkhat-wine); font-family: var(--font-heading); font-size: 18px;">Качество по салонам</h2>\n'
     html += '        <div class="salons-grid" id="salonsContainer">\n'
 
     # Генерация карточек салонов
@@ -793,7 +864,7 @@ def generate_html(data, periods):
 
         html += f'            <div class="salon-card" id="salon-{salon.replace(" ", "-")}" onclick="openSalonModal(\'{salon}\')">\n'
         html += f'                <div class="header">\n'
-        html += f'                    <div class="name">{salon} 📊</div>\n'
+        html += f'                    <div class="name">{salon}</div>\n'
         html += f'                    <span class="badge {badge_class}">{badge_text}</span>\n'
         html += f'                </div>\n'
         html += f'                <div class="score-big" id="score-{salon.replace(" ", "-")}">{salon_data["avg_score"]}</div>\n'
@@ -850,10 +921,10 @@ def generate_html(data, periods):
         </div>\n\n'''
 
     html += '''        <!-- Проблемные задачи по салонам -->
-        <div class="chart-section" style="margin: 30px 0; padding: 30px; background: #fff8e1; border-radius: 15px;">
-            <h2 style="margin-bottom: 20px; color: #f57c00;">⚠️ Задачи с низким баллом (требуют внимания)</h2>
-            <p style="color: #666; margin-bottom: 20px;">Показаны задачи с баллом ≤13 (max=14) или ≤16 (max=18) за выбранный период</p>
-            <div id="problemTasks" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+        <div class="bx-card" style="margin: 16px 0; background: linear-gradient(135deg, rgba(225, 164, 201, 0.15) 0%, rgba(178, 111, 161, 0.15) 100%); border-color: var(--barkhat-pink-light);">
+            <h2 style="margin-bottom: 8px; color: var(--barkhat-wine);">Задачи с низким баллом (требуют внимания)</h2>
+            <p style="color: var(--barkhat-gray); margin-bottom: 12px; font-size: 12px;">Показаны задачи с баллом ≤13 (max=14) или ≤16 (max=18) за выбранный период</p>
+            <div id="problemTasks" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px;">
                 <!-- Проблемные задачи генерируются через JavaScript -->
             </div>
         </div>
@@ -965,11 +1036,18 @@ def generate_html(data, periods):
         }
 
         function updateUI(stats) {
-            // Обновляем KPI карточки
-            document.getElementById('totalOrders').textContent = stats.total_orders.toLocaleString();
-            document.getElementById('avgScore').textContent = stats.avg_score;
-            document.getElementById('perfectCount').textContent = stats.perfect_count;
-            document.getElementById('perfectPercent').textContent = stats.perfect_percentage;
+            // Обновляем KPI карточки (с проверкой существования)
+            const totalOrdersEl = document.getElementById('totalOrders');
+            if (totalOrdersEl) totalOrdersEl.textContent = stats.total_orders.toLocaleString();
+
+            const avgScoreEl = document.getElementById('avgScore');
+            if (avgScoreEl) avgScoreEl.textContent = stats.avg_score;
+
+            const perfectCountEl = document.getElementById('perfectCount');
+            if (perfectCountEl) perfectCountEl.textContent = stats.perfect_count;
+
+            const perfectPercentEl = document.getElementById('perfectPercent');
+            if (perfectPercentEl) perfectPercentEl.textContent = stats.perfect_percentage;
 
             // Получаем все карточки салонов
             const allCards = document.querySelectorAll('.salon-card');
@@ -1334,8 +1412,8 @@ def generate_html(data, periods):
             'Цветочный букет': 14,
             'Коробочка с клубникой или бананами': 14,
             'Клубнично-цветочный букет': 18,
-            'Цветочный бокс': 18,
-            'Коробочка+цветочный букет': 14,
+            'Цветочный бокс': 14,
+            'Коробочка+цветочный букет': 18,
             'Клубничный бокс': 14,
             'Цветочно-клубничный бокс': 18
         };
@@ -1380,7 +1458,7 @@ def generate_html(data, periods):
                 html += '<h3 style="color: #c62828; margin-bottom: 15px;">' + salon + '</h3>';
 
                 worstTasks.forEach(task => {
-                    const pyrusUrl = 'https://pyrus.com/' + task.taskId;
+                    const pyrusUrl = 'https://pyrus.com/t#id' + task.taskId;
                     html += '<div style="margin-bottom: 12px; padding: 10px; background: #ffebee; border-radius: 5px;">';
                     html += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">';
                     html += '<span style="font-weight: bold; color: #c62828;">' + task.score + '/' + task.maxScore + '</span>';
@@ -1423,11 +1501,6 @@ def generate_html(data, periods):
             console.log('[DEBUG] Calling updateSalonTable with allOrders...');
             updateSalonTable(allOrders, 'all');
             console.log('[DEBUG] Initial table update complete');
-
-            // Инициализируем график салонов
-            console.log('[DEBUG] Calling updateSalonChart with allOrders...');
-            updateSalonChart(allOrders, 'all');
-            console.log('[DEBUG] Initial chart update complete');
 
             // Инициализируем проблемные задачи
             updateProblemTasks(allOrders);

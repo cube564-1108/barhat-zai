@@ -207,6 +207,7 @@ def generate_dashboard(records):
         data = []
         for record in records:
             data.append({
+                'task_id': record.get('task_id', ''),  # ID задачи Pyrus для ссылки
                 'city': '',  # Будет извлечён из названия салона
                 'period': record['период'],
                 'date': record['ДАТА'],
