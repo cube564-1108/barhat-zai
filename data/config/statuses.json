@@ -1,0 +1,19 @@
+{
+  "excluded_statuses": [
+    "cancel-other"
+  ],
+  "excluded_status_names": [
+    "Отменен",
+    "Заказ не доставлен"
+  ],
+  "all_found_statuses": [
+    "complete",
+    "send-to-florist",
+    "at-work",
+    "call-courier",
+    "cancel-other",
+    "wait-client",
+    "new"
+  ],
+  "note": "Обновлено после исследования API. cancel-other = отменённые заказы. Требуется уточнение остальных статусов."
+}

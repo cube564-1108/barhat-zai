@@ -1,0 +1,75 @@
+{
+  "salons": [
+    {
+      "retailcrm_id": "barkhat-akadem",
+      "name": "Академ Вяземская 3",
+      "city": "Академ"
+    },
+    {
+      "retailcrm_id": "barkhat-barnaul",
+      "name": "Барнаул Лазурная 1",
+      "city": "Барнаул"
+    },
+    {
+      "retailcrm_id": "barkhat-barnaul2",
+      "name": "Барнаул Советская 7",
+      "city": "Барнаул"
+    },
+    {
+      "retailcrm_id": "barkhat-ekb",
+      "name": "ЕКБ Бажова 89",
+      "city": "Екатеринбург",
+      "note": "Текущий ID (с апреля 2026)"
+    },
+    {
+      "retailcrm_id": "barkhat-ekb2",
+      "name": "ЕКБ Белинского 167",
+      "city": "Екатеринбург",
+      "note": "В заказах до апреля 2026"
+    },
+    {
+      "retailcrm_id": "barkhat-nsk-levyi",
+      "name": "НСК Блюхера 61",
+      "city": "Новосибирск",
+      "note": "Текущий ID"
+    },
+    {
+      "retailcrm_id": "barkhat-nsk",
+      "name": "НСК Богдана Хмельницкого 14",
+      "city": "Новосибирск",
+      "note": "В заказах до апреля 2026"
+    },
+    {
+      "retailcrm_id": "nsk-voskhod-3",
+      "name": "НСК Восход 3",
+      "city": "Новосибирск"
+    },
+    {
+      "retailcrm_id": "nsk-zheleznodorozhnaia-15-1",
+      "name": "НСК Железнодорожная 15/1",
+      "city": "Новосибирск"
+    },
+    {
+      "retailcrm_id": "barkhat-tomsk",
+      "name": "Томск Дальне-Ключевская 16а",
+      "city": "Томск",
+      "note": "Текущий ID (с апреля 2026)"
+    },
+    {
+      "retailcrm_id": "tomsk-frunze-102",
+      "name": "Томск Фрунзе 102",
+      "city": "Томск",
+      "note": "В заказах до апреля 2026"
+    },
+    {
+      "retailcrm_id": "cheliabinsk-sverdl-pr-23",
+      "name": "Челябинск Свердловский проспект 23",
+      "city": "Челябинск"
+    },
+    {
+      "retailcrm_id": "cheliabinsk-tsvillinga-59",
+      "name": "Челябинск Цвиллинга 59",
+      "city": "Челябинск"
+    }
+  ]
+}
