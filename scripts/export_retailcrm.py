@@ -9,6 +9,10 @@ from datetime import datetime
 from typing import List, Dict, Any
 import json
 from dotenv import load_dotenv
+import urllib3
+
+# Отключаем предупреждения SSL (для self-signed certificates)
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class RetailCRMExporter:
@@ -63,7 +67,8 @@ class RetailCRMExporter:
             try:
                 response = self.session.get(
                     url,
-                    headers=self.headers
+                    headers=self.headers,
+                    verify=False
                 )
                 response.raise_for_status()
 
