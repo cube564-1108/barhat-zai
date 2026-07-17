@@ -33,11 +33,23 @@ class RetailCRMExporter:
         self.ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
         self.ssl_context.check_hostname = False
         self.ssl_context.verify_mode = ssl.CERT_NONE
+
+        # Разрешаем соединение с legacy серверами
+        try:
+            self.ssl_context.options |= ssl.OP_LEGACY_SERVER_CONNECT
+        except Exception:
+            pass
+
         # Устанавливаем минимальный уровень безопасности для совместимости
         try:
             self.ssl_context.set_ciphers('DEFAULT:@SECLEVEL=0')
         except Exception:
             pass  # Игнорируем если не поддерживается
+        try:
+            self.ssl_context.set_ciphers('HIGH:!DH:!3DES')
+        except Exception:
+            pass
+
         # Разрешаем все поддерживаемые TLS версии
         try:
             self.ssl_context.minimum_version = ssl.TLSVersion.TLSv1
@@ -45,6 +57,15 @@ class RetailCRMExporter:
             pass
         try:
             self.ssl_context.maximum_version = ssl.TLSVersion.MAXIMUM_SUPPORTED
+        except Exception:
+            pass
+
+        # Дополнительные опции для совместимости
+        try:
+            self.ssl_context.options &= ~ssl.OP_NO_SSLv2
+            self.ssl_context.options &= ~ssl.OP_NO_SSLv3
+            self.ssl_context.options &= ~ssl.OP_NO_TLSv1
+            self.ssl_context.options &= ~ssl.OP_NO_TLSv1_1
         except Exception:
             pass
 
