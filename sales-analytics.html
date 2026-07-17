@@ -612,26 +612,45 @@
 
       const months = (data.months || []);
       const labels = months.map(m => m.month_name);
-      const values = months.map(m => m.total?.shipment_sum || 0);
+      const currentValues = months.map(m => m.total?.shipment_sum || 0);
+      const lastYearValues = months.map(m => m.total?.shipment_sum_last_year || 0);
 
       monthlyChart = new Chart(ctx, {
         type: 'line',
         data: {
           labels: labels,
-          datasets: [{
-            label: 'Продажи, ₽',
-            data: values,
-            borderColor: 'rgba(65, 19, 48, 0.8)',
-            backgroundColor: 'rgba(65, 19, 48, 0.1)',
-            fill: true,
-            tension: 0.4
-          }]
+          datasets: [
+            {
+              label: `${data.year} год`,
+              data: currentValues,
+              borderColor: 'rgba(65, 19, 48, 0.8)',
+              backgroundColor: 'rgba(65, 19, 48, 0.1)',
+              fill: true,
+              tension: 0.4
+            },
+            {
+              label: `${data.last_year || data.year - 1} год`,
+              data: lastYearValues,
+              borderColor: 'rgba(156, 156, 156, 0.6)',
+              backgroundColor: 'rgba(156, 156, 156, 0.05)',
+              borderDash: [5, 5],
+              fill: false,
+              tension: 0.4
+            }
+          ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: false }
+            legend: {
+              display: true,
+              position: 'top',
+              labels: {
+                usePointStyle: true,
+                padding: 15
+              }
+            }
           },
           scales: {
             y: {
@@ -731,9 +750,9 @@
             break;
         }
 
-        const data = await fetch(`/api/sales/current-month?year=${year}&month=${month}`);
-        if (!data.ok) throw new Error(`HTTP ${data.status}`);
-        const result = await data.json();
+        const response = await fetch(`/api/sales/current-month?year=${year}&month=${month}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const result = await response.json();
 
         currentData = result;
         renderKPI(result);

@@ -397,23 +397,38 @@ def get_mock_current_month():
     """Mock данные для текущего месяца."""
     now = datetime.now()
     from_date = datetime(now.year, now.month, 1).strftime('%Y-%m-%d %H:%M:%S')
+
+    # Реальные салоны из конфига
+    all_salons = [
+        {'name': 'Академ Вяземская 3', 'orders_count': 142, 'shipment_sum': 443750, 'avg_check': 3125},
+        {'name': 'Барнаул Лазурная 1', 'orders_count': 98, 'shipment_sum': 294000, 'avg_check': 3000},
+        {'name': 'Барнаул Советская 7', 'orders_count': 87, 'shipment_sum': 261000, 'avg_check': 3000},
+        {'name': 'ЕКБ Бажова 89', 'orders_count': 156, 'shipment_sum': 487500, 'avg_check': 3125},
+        {'name': 'ЕКБ Белинского 167', 'orders_count': 64, 'shipment_sum': 192000, 'avg_check': 3000},
+        {'name': 'НСК Блюхера 61', 'orders_count': 203, 'shipment_sum': 609000, 'avg_check': 3000},
+        {'name': 'НСК Богдана Хмельницкого 14', 'orders_count': 45, 'shipment_sum': 135000, 'avg_check': 3000},
+        {'name': 'НСК Восход 3', 'orders_count': 112, 'shipment_sum': 336000, 'avg_check': 3000},
+        {'name': 'НСК Железнодорожная 15/1', 'orders_count': 78, 'shipment_sum': 234000, 'avg_check': 3000},
+        {'name': 'Томск Дальне-Ключевская 16а', 'orders_count': 134, 'shipment_sum': 402000, 'avg_check': 3000},
+        {'name': 'Томск Фрунзе 102', 'orders_count': 67, 'shipment_sum': 209250, 'avg_check': 3125},
+        {'name': 'Челябинск Свердловский проспект 23', 'orders_count': 89, 'shipment_sum': 267000, 'avg_check': 3000},
+        {'name': 'Челябинск Цвиллинга 59', 'orders_count': 56, 'shipment_sum': 168000, 'avg_check': 3000}
+    ]
+
+    total_orders = sum(s['orders_count'] for s in all_salons)
+    total_sum = sum(s['shipment_sum'] for s in all_salons)
+
     return {
         'period': {
             'from': from_date,
             'to': now.strftime('%Y-%m-%d %H:%M:%S'),
             'label': f"1-{now.day} {now.strftime('%B %Y')}"
         },
-        'salons': [
-            {'name': 'Фрунзе', 'orders_count': 156, 'shipment_sum': 487500, 'avg_check': 3125},
-            {'name': 'Советская', 'orders_count': 124, 'shipment_sum': 372000, 'avg_check': 3000},
-            {'name': 'Малая Земля', 'orders_count': 98, 'shipment_sum': 343000, 'avg_check': 3500},
-            {'name': 'Агрономическая', 'orders_count': 87, 'shipment_sum': 261000, 'avg_check': 3000},
-            {'name': 'Онлайн', 'orders_count': 143, 'shipment_sum': 429000, 'avg_check': 3000}
-        ],
+        'salons': all_salons,
         'total': {
-            'orders_count': 608,
-            'shipment_sum': 1892500,
-            'avg_check': 3112.5
+            'orders_count': total_orders,
+            'shipment_sum': total_sum,
+            'avg_check': total_sum / total_orders if total_orders > 0 else 0
         },
         'cached': False,
         'generated_at': now.isoformat()
@@ -424,14 +439,19 @@ def get_mock_monthly_comparison():
     now = datetime.now()
     month_names = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл']
     current_values = [1250000, 1180000, 1420000, 1650000, 1580000, 1720000, 1892500]
+    last_year_values = [980000, 920000, 1150000, 1280000, 1250000, 1380000, 1520000]
 
     return {
         'year': now.year,
+        'last_year': now.year - 1,
         'months': [
             {
                 'month': i + 1,
                 'month_name': month_names[i],
-                'total': {'shipment_sum': current_values[i]}
+                'total': {
+                    'shipment_sum': current_values[i],
+                    'shipment_sum_last_year': last_year_values[i]
+                }
             }
             for i in range(len(month_names))
         ]
@@ -439,43 +459,69 @@ def get_mock_monthly_comparison():
 
 def get_mock_compare_periods():
     """Mock данные для сравнения периодов."""
+    # Текущий период
+    salons_current = [
+        {'name': 'Академ Вяземская 3', 'orders_count': 71, 'shipment_sum': 221875, 'avg_check': 3125},
+        {'name': 'Барнаул Лазурная 1', 'orders_count': 49, 'shipment_sum': 147000, 'avg_check': 3000},
+        {'name': 'Барнаул Советская 7', 'orders_count': 44, 'shipment_sum': 132000, 'avg_check': 3000},
+        {'name': 'ЕКБ Бажова 89', 'orders_count': 78, 'shipment_sum': 243750, 'avg_check': 3125},
+        {'name': 'ЕКБ Белинского 167', 'orders_count': 32, 'shipment_sum': 96000, 'avg_check': 3000},
+        {'name': 'НСК Блюхера 61', 'orders_count': 102, 'shipment_sum': 306000, 'avg_check': 3000},
+        {'name': 'НСК Богдана Хмельницкого 14', 'orders_count': 22, 'shipment_sum': 66000, 'avg_check': 3000},
+        {'name': 'НСК Восход 3', 'orders_count': 56, 'shipment_sum': 168000, 'avg_check': 3000},
+        {'name': 'НСК Железнодорожная 15/1', 'orders_count': 39, 'shipment_sum': 117000, 'avg_check': 3000},
+        {'name': 'Томск Дальне-Ключевская 16а', 'orders_count': 67, 'shipment_sum': 201000, 'avg_check': 3000},
+        {'name': 'Томск Фрунзе 102', 'orders_count': 34, 'shipment_sum': 106250, 'avg_check': 3125},
+        {'name': 'Челябинск Свердловский проспект 23', 'orders_count': 45, 'shipment_sum': 135000, 'avg_check': 3000},
+        {'name': 'Челябинск Цвиллинга 59', 'orders_count': 28, 'shipment_sum': 84000, 'avg_check': 3000}
+    ]
+
+    # Прошлый год (меньше заказов)
+    salons_compare = [
+        {'name': 'Академ Вяземская 3', 'orders_count': 65, 'shipment_sum': 203125, 'avg_check': 3125},
+        {'name': 'Барнаул Лазурная 1', 'orders_count': 44, 'shipment_sum': 132000, 'avg_check': 3000},
+        {'name': 'Барнаул Советская 7', 'orders_count': 40, 'shipment_sum': 120000, 'avg_check': 3000},
+        {'name': 'ЕКБ Бажова 89', 'orders_count': 71, 'shipment_sum': 221875, 'avg_check': 3125},
+        {'name': 'ЕКБ Белинского 167', 'orders_count': 29, 'shipment_sum': 87000, 'avg_check': 3000},
+        {'name': 'НСК Блюхера 61', 'orders_count': 93, 'shipment_sum': 279000, 'avg_check': 3000},
+        {'name': 'НСК Богдана Хмельницкого 14', 'orders_count': 20, 'shipment_sum': 60000, 'avg_check': 3000},
+        {'name': 'НСК Восход 3', 'orders_count': 51, 'shipment_sum': 153000, 'avg_check': 3000},
+        {'name': 'НСК Железнодорожная 15/1', 'orders_count': 35, 'shipment_sum': 105000, 'avg_check': 3000},
+        {'name': 'Томск Дальне-Ключевская 16а', 'orders_count': 61, 'shipment_sum': 183000, 'avg_check': 3000},
+        {'name': 'Томск Фрунзе 102', 'orders_count': 31, 'shipment_sum': 96875, 'avg_check': 3125},
+        {'name': 'Челябинск Свердловский проспект 23', 'orders_count': 41, 'shipment_sum': 123000, 'avg_check': 3000},
+        {'name': 'Челябинск Цвиллинга 59', 'orders_count': 25, 'shipment_sum': 75000, 'avg_check': 3000}
+    ]
+
+    total_current = {'orders_count': sum(s['orders_count'] for s in salons_current),
+                     'shipment_sum': sum(s['shipment_sum'] for s in salons_current),
+                     'avg_check': 0}
+    total_compare = {'orders_count': sum(s['orders_count'] for s in salons_compare),
+                     'shipment_sum': sum(s['shipment_sum'] for s in salons_compare),
+                     'avg_check': 0}
+
+    if total_current['orders_count'] > 0:
+        total_current['avg_check'] = total_current['shipment_sum'] / total_current['orders_count']
+    if total_compare['orders_count'] > 0:
+        total_compare['avg_check'] = total_compare['shipment_sum'] / total_compare['orders_count']
+
     return {
         'period_current': {
             'from': '2026-07-01 00:00:00',
             'to': '2026-07-15 23:59:59',
-            'salons': [
-                {'name': 'Фрунзе', 'orders_count': 78, 'shipment_sum': 243750, 'avg_check': 3125},
-                {'name': 'Советская', 'orders_count': 62, 'shipment_sum': 186000, 'avg_check': 3000},
-                {'name': 'Малая Земля', 'orders_count': 49, 'shipment_sum': 171500, 'avg_check': 3500},
-                {'name': 'Агрономическая', 'orders_count': 44, 'shipment_sum': 132000, 'avg_check': 3000},
-                {'name': 'Онлайн', 'orders_count': 71, 'shipment_sum': 213500, 'avg_check': 3000}
-            ],
-            'total': {
-                'orders_count': 304,
-                'shipment_sum': 946750,
-                'avg_check': 3114.47
-            }
+            'salons': salons_current,
+            'total': total_current
         },
         'period_compare': {
-            'from': '2026-06-01 00:00:00',
-            'to': '2026-06-15 23:59:59',
-            'salons': [
-                {'name': 'Фрунзе', 'orders_count': 72, 'shipment_sum': 225000, 'avg_check': 3125},
-                {'name': 'Советская', 'orders_count': 58, 'shipment_sum': 174000, 'avg_check': 3000},
-                {'name': 'Малая Земля', 'orders_count': 45, 'shipment_sum': 157500, 'avg_check': 3500},
-                {'name': 'Агрономическая', 'orders_count': 40, 'shipment_sum': 120000, 'avg_check': 3000},
-                {'name': 'Онлайн', 'orders_count': 65, 'shipment_sum': 195000, 'avg_check': 3000}
-            ],
-            'total': {
-                'orders_count': 280,
-                'shipment_sum': 871500,
-                'avg_check': 3112.5
-            }
+            'from': '2025-07-01 00:00:00',
+            'to': '2025-07-15 23:59:59',
+            'salons': salons_compare,
+            'total': total_compare
         },
         'changes': {
-            'orders_count': 8.57,
-            'shipment_sum': 8.62,
-            'avg_check': 0.06
+            'orders_count': ((total_current['orders_count'] - total_compare['orders_count']) / total_compare['orders_count'] * 100) if total_compare['orders_count'] > 0 else 0,
+            'shipment_sum': ((total_current['shipment_sum'] - total_compare['shipment_sum']) / total_compare['shipment_sum'] * 100) if total_compare['shipment_sum'] > 0 else 0,
+            'avg_check': ((total_current['avg_check'] - total_compare['avg_check']) / total_compare['avg_check'] * 100) if total_compare['avg_check'] > 0 else 0
         },
         'cached': False
     }
