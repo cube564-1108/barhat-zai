@@ -25,6 +25,10 @@ class RetailCRMExporter:
         self.api_url = os.getenv('RETAILCRM_API_URL')
         self.api_key = os.getenv('RETAILCRM_API_KEY')
 
+        # Логируем для отладки (без ключа!)
+        print(f"[DEBUG] RetailCRM URL: {self.api_url}")
+        print(f"[DEBUG] API Key: {'SET' if self.api_key else 'NOT SET'}")
+
         if not self.api_url or not self.api_key:
             raise ValueError("RETAILCRM_API_URL и RETAILCRM_API_KEY должны быть указаны в .env")
 
