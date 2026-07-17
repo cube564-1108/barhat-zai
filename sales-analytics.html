@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Аналитика по продажам — Бархат</title>
+
+  <!-- Бренд-токены Бархат -->
+  <link rel="stylesheet" href="brand/tokens.css">
+  <link rel="stylesheet" href="brand/brand.css">
+
+  <style>
+    /* Дополнительные стили для дашборда */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #FAFAFA;
+      min-height: 100vh;
+    }
+
+    /* Шапка */
+    .dashboard-header {
+      background: var(--barkhat-wine);
+      color: var(--barkhat-white);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .dashboard-header h1 {
+      color: var(--barkhat-white);
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .dashboard-header .refresh-btn {
+      margin-left: auto;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: var(--barkhat-white);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 13px;
+      transition: all 0.2s ease;
+    }
+
+    .dashboard-header .refresh-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Кнопка очистки кэша */
+    .cache-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: var(--barkhat-white);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 13px;
+      margin-right: 8px;
+    }
+
+    .cache-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Фильтры периода */
+    .period-filter {
+      padding: 16px 20px;
+      background: var(--barkhat-white);
+      border-bottom: 1px solid var(--barkhat-pink-light);
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .period-filter label {
+      color: var(--barkhat-gray);
+      font-size: 13px;
+      margin-right: 4px;
+    }
+
+    .period-filter select {
+      padding: 8px 12px;
+      border: 1px solid var(--barkhat-pink);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 13px;
+      color: var(--barkhat-gray-dark);
+      background: var(--barkhat-white);
+      cursor: pointer;
+    }
+
+    /* KPI карточки */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      padding: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .kpi-card {
+      background: var(--barkhat-white);
+      border: 1px solid var(--barkhat-pink-light);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(65, 19, 48, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card.skeleton {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .kpi-card .label {
+      color: var(--barkhat-gray);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+
+    .kpi-card .value {
+      font-family: var(--font-heading);
+      font-size: 28px;
+      color: var(--barkhat-wine);
+      font-weight: 600;
+      line-height: 1.1;
+    }
+
+    .kpi-card .change {
+      font-size: 13px;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .kpi-card .change.positive {
+      color: #27AE60;
+    }
+
+    .kpi-card .change.negative {
+      color: #E74C3C;
+    }
+
+    /* Графики */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      gap: 20px;
+      padding: 0 20px 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .chart-card {
+      background: var(--barkhat-white);
+      border: 1px solid var(--barkhat-pink-light);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(65, 19, 48, 0.08);
+    }
+
+    .chart-card h3 {
+      font-size: 16px;
+      margin-bottom: 16px;
+      color: var(--barkhat-wine);
+    }
+
+    .chart-container {
+      position: relative;
+      height: 300px;
+    }
+
+    /* Таблица */
+    .table-card {
+      background: var(--barkhat-white);
+      border: 1px solid var(--barkhat-pink-light);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(65, 19, 48, 0.08);
+      max-width: 1400px;
+      margin: 0 auto 20px;
+    }
+
+    .table-card h3 {
+      font-size: 16px;
+      margin-bottom: 16px;
+      color: var(--barkhat-wine);
+    }
+
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      background: var(--barkhat-pink-light);
+      color: var(--barkhat-wine);
+      font-family: var(--font-heading);
+      font-weight: 600;
+      text-align: left;
+      padding: 12px 16px;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #eee;
+      font-size: 14px;
+    }
+
+    tr:hover td {
+      background: rgba(228, 194, 221, 0.18);
+    }
+
+    .number-cell {
+      text-align: right;
+      font-family: 'Inter', monospace;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Loading spinner */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid var(--barkhat-pink-light);
+      border-top-color: var(--barkhat-pink);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Error message */
+    .error-message {
+      background: #FEE;
+      border: 1px solid #FCC;
+      border-radius: 8px;
+      padding: 16px;
+      margin: 20px;
+      color: #C33;
+      max-width: 1400px;
+      margin: 20px auto;
+    }
+
+    /* Адаптивность */
+    @media (max-width: 768px) {
+      .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        padding: 12px;
+      }
+
+      .charts-grid {
+        grid-template-columns: 1fr;
+        padding: 0 12px 12px;
+      }
+
+      .table-card {
+        padding: 12px;
+        margin: 0 12px 12px;
+      }
+
+      .dashboard-header {
+        flex-wrap: wrap;
+      }
+
+      .period-filter {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+
+    /* Cached badge */
+    .cached-badge {
+      display: inline-block;
+      background: rgba(39, 174, 96, 0.1);
+      color: #27AE60;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      margin-left: 8px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Шапка -->
+  <header class="dashboard-header">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+    </svg>
+    <h1>Аналитика по продажам</h1>
+    <span id="cachedBadge" class="cached-badge" style="display:none;">Из кэша</span>
+    <button class="cache-btn" onclick="clearCache()">Очистить кэш</button>
+    <button class="refresh-btn" onclick="loadData()">Обновить</button>
+  </header>
+
+  <!-- Фильтр периода -->
+  <div class="period-filter">
+    <label>Период:</label>
+    <select id="periodSelect" onchange="onPeriodChange()">
+      <option value="current">Текущий месяц</option>
+      <option value="last">Прошлый месяц</option>
+      <option value="quarter">Текущий квартал</option>
+      <option value="year">Этот год</option>
+      <option value="custom">Выбрать период...</option>
+    </select>
+    <div id="customDateRange" style="display:none; gap:8px; margin-left: 16px;">
+      <input type="date" id="dateFrom" class="bx-nav-btn" style="border:1px solid var(--barkhat-pink); padding:6px 12px; border-radius:8px;">
+      <span>—</span>
+      <input type="date" id="dateTo" class="bx-nav-btn" style="border:1px solid var(--barkhat-pink); padding:6px 12px; border-radius:8px;">
+      <button class="bx-btn" onclick="applyCustomPeriod()">Применить</button>
+    </div>
+  </div>
+
+  <!-- KPI карточки -->
+  <div class="kpi-grid" id="kpiGrid">
+    <div class="kpi-card skeleton">
+      <div class="label">Загрузка...</div>
+      <div class="value">—</div>
+    </div>
+    <div class="kpi-card skeleton">
+      <div class="label">Загрузка...</div>
+      <div class="value">—</div>
+    </div>
+    <div class="kpi-card skeleton">
+      <div class="label">Загрузка...</div>
+      <div class="value">—</div>
+    </div>
+    <div class="kpi-card skeleton">
+      <div class="label">Загрузка...</div>
+      <div class="value">—</div>
+    </div>
+  </div>
+
+  <!-- Графики -->
+  <div class="charts-grid">
+    <div class="chart-card">
+      <h3>Продажи по салонам</h3>
+      <div class="chart-container">
+        <canvas id="salonChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3>Динамика по месяцам</h3>
+      <div class="chart-container">
+        <canvas id="monthlyChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Таблица -->
+  <div class="table-card">
+    <h3>Детализация по салонам</h3>
+    <div class="table-container">
+      <table id="salonTable">
+        <thead>
+          <tr>
+            <th>Салон</th>
+            <th class="number-cell">Заказов</th>
+            <th class="number-cell">Сумма, ₽</th>
+            <th class="number-cell">Средний чек, ₽</th>
+            <th class="number-cell">Доля</th>
+          </tr>
+        </thead>
+        <tbody id="salonTableBody">
+          <!-- Заполняется через JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Loading overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- Error container -->
+  <div class="error-message" id="errorMessage" style="display:none;"></div>
+
+  <!-- Chart.js (CDN с fallback) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"
+          onerror="this.onerror=null; this.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js';"></script>
+
+  <script>
+    // Константы
+    const API_BASE = '/api/sales';
+    let currentData = null;
+    let salonChart = null;
+    let monthlyChart = null;
+
+    // Форматирование чисел
+    const formatNumber = new Intl.NumberFormat('ru-RU', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format;
+
+    const formatMoney = new Intl.NumberFormat('ru-RU', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format;
+
+    // Инициализация
+    document.addEventListener('DOMContentLoaded', () => {
+      loadData();
+    });
+
+    // Загрузка данных
+    async function loadData() {
+      showLoading(true);
+      hideError();
+
+      try {
+        const data = await fetchCurrentMonthData();
+        currentData = data;
+        renderKPI(data);
+        renderSalonChart(data);
+        renderTable(data);
+        updateCachedBadge(data.cached);
+
+        // Загружаем месячную динамику
+        const monthlyData = await fetchMonthlyComparison();
+        renderMonthlyChart(monthlyData);
+
+      } catch (error) {
+        showError('Ошибка загрузки данных: ' + error.message);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    // API: Текущий месяц
+    async function fetchCurrentMonthData() {
+      const response = await fetch(`${API_BASE}/current-month`);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      return await response.json();
+    }
+
+    // API: Месячное сравнение
+    async function fetchMonthlyComparison() {
+      const year = new Date().getFullYear();
+      const response = await fetch(`${API_BASE}/monthly-comparison?year=${year}`);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      return await response.json();
+    }
+
+    // API: Сравнение периодов
+    async function fetchComparePeriods(from, to, compareFrom, compareTo) {
+      const params = new URLSearchParams({
+        from: from,
+        to: to,
+        compare_from: compareFrom,
+        compare_to: compareTo
+      });
+      const response = await fetch(`${API_BASE}/compare-periods?${params}`);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      return await response.json();
+    }
+
+    // API: Очистка кэша
+    async function clearCache() {
+      try {
+        const response = await fetch(`${API_BASE}/cache/clear`, { method: 'POST' });
+        if (!response.ok) throw new Error('Failed to clear cache');
+        await loadData();
+      } catch (error) {
+        showError('Ошибка очистки кэша: ' + error.message);
+      }
+    }
+
+    // Рендер KPI карточек
+    function renderKPI(data) {
+      const total = data.total || {};
+      const salons = data.salons || [];
+
+      // Вычисляем динамику (для примера - сравнение с прошлым периодом)
+      // В реальности здесь нужны данные сравнения
+
+      const kpiHTML = `
+        <div class="kpi-card">
+          <div class="label">Сумма продаж</div>
+          <div class="value">${formatMoney(total.shipment_sum || 0)}</div>
+          <div class="change">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M7 14l5-5 5 5z"/>
+            </svg>
+            <span>—</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="label">Заказов</div>
+          <div class="value">${formatNumber(total.orders_count || 0)}</div>
+          <div class="change">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M7 14l5-5 5 5z"/>
+            </svg>
+            <span>—</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="label">Средний чек</div>
+          <div class="value">${formatMoney(total.avg_check || 0)}</div>
+        </div>
+        <div class="kpi-card">
+          <div class="label">Салонов</div>
+          <div class="value">${salons.length}</div>
+        </div>
+      `;
+
+      document.getElementById('kpiGrid').innerHTML = kpiHTML;
+    }
+
+    // Рендер графика по салонам
+    function renderSalonChart(data) {
+      const ctx = document.getElementById('salonChart').getContext('2d');
+
+      if (salonChart) {
+        salonChart.destroy();
+      }
+
+      const salons = (data.salons || []).slice(0, 10); // Top 10
+      const labels = salons.map(s => s.name);
+      const values = salons.map(s => s.shipment_sum);
+
+      salonChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Сумма продаж, ₽',
+            data: values,
+            backgroundColor: 'rgba(209, 156, 194, 0.7)',
+            borderColor: 'rgba(209, 156, 194, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: value => formatNumber(value)
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Рендер месячного графика
+    function renderMonthlyChart(data) {
+      const ctx = document.getElementById('monthlyChart').getContext('2d');
+
+      if (monthlyChart) {
+        monthlyChart.destroy();
+      }
+
+      const months = (data.months || []);
+      const labels = months.map(m => m.month_name);
+      const values = months.map(m => m.total?.shipment_sum || 0);
+
+      monthlyChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Продажи, ₽',
+            data: values,
+            borderColor: 'rgba(65, 19, 48, 0.8)',
+            backgroundColor: 'rgba(65, 19, 48, 0.1)',
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: value => formatNumber(value)
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Рендер таблицы
+    function renderTable(data) {
+      const salons = data.salons || [];
+      const total = data.total?.shipment_sum || 0;
+
+      const tbody = document.getElementById('salonTableBody');
+      tbody.innerHTML = salons.map(salon => {
+        const share = total > 0 ? (salon.shipment_sum / total * 100) : 0;
+        return `
+          <tr>
+            <td>${salon.name}</td>
+            <td class="number-cell">${formatNumber(salon.orders_count)}</td>
+            <td class="number-cell">${formatMoney(salon.shipment_sum)}</td>
+            <td class="number-cell">${formatMoney(salon.avg_check)}</td>
+            <td class="number-cell">${share.toFixed(1)}%</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // UI функции
+    function showLoading(show) {
+      document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+    }
+
+    function showError(message) {
+      const el = document.getElementById('errorMessage');
+      el.textContent = message;
+      el.style.display = 'block';
+    }
+
+    function hideError() {
+      document.getElementById('errorMessage').style.display = 'none';
+    }
+
+    function updateCachedBadge(cached) {
+      document.getElementById('cachedBadge').style.display = cached ? 'inline-block' : 'none';
+    }
+
+    // Переключение периода
+    function onPeriodChange() {
+      const select = document.getElementById('periodSelect');
+      const customRange = document.getElementById('customDateRange');
+
+      if (select.value === 'custom') {
+        customRange.style.display = 'flex';
+      } else {
+        customRange.style.display = 'none';
+        // TODO: загрузка данных для выбранного периода
+      }
+    }
+
+    function applyCustomPeriod() {
+      const from = document.getElementById('dateFrom').value;
+      const to = document.getElementById('dateTo').value;
+      if (from && to) {
+        // TODO: загрузка данных за custom период
+        console.log('Load:', from, to);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -19,6 +19,9 @@ from itsdangerous import URLSafeTimedSerializer
 # Добавляем корневую директорию в path для импорта скриптов
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Импорт аналитики продаж
+from scripts.export_retailcrm_sales import SalesAnalyticsExporter
+
 load_dotenv()
 
 # Конфигурация
@@ -36,6 +39,16 @@ CORS(app)
 
 # Сериализатор для сессий (itsdangerous)
 session_serializer = URLSafeTimedSerializer(SESSION_SECRET, salt="barkhat-quality-session")
+
+# Lazy init для SalesAnalyticsExporter
+_sales_exporter = None
+
+def get_sales_exporter():
+    """Получить экземпляр SalesAnalyticsExporter (lazy init)."""
+    global _sales_exporter
+    if _sales_exporter is None:
+        _sales_exporter = SalesAnalyticsExporter()
+    return _sales_exporter
 
 
 def create_session_cookie(user_claims):
@@ -371,6 +384,209 @@ def health():
             'pyrus': bool(os.getenv('PYRUS_ACCESS_TOKEN'))
         }
     })
+
+
+# ============================================================
+# API эндпоинты аналитики продаж
+# ============================================================
+
+@app.route('/api/sales/current-month')
+@require_session
+def api_sales_current_month():
+    """
+    Получить статистику за текущий месяц.
+
+    Query params:
+        year (опционально): Год
+        month (опционально): Месяц (1-12)
+
+    Returns:
+        JSON с данными по салонам за месяц
+    """
+    try:
+        exporter = get_sales_exporter()
+
+        # Проверяем опциональные параметры
+        year = request.args.get('year', type=int)
+        month = request.args.get('month', type=int)
+
+        if year is not None and month is not None:
+            # Запрашиваем конкретный месяц
+            from_date = datetime(year, month, 1).strftime('%Y-%m-%d %H:%M:%S')
+
+            if month == 12:
+                to_date = datetime(year, 12, 31, 23, 59, 59).strftime('%Y-%m-%d %H:%M:%S')
+            else:
+                to_date = datetime(year, month + 1, 1) - timedelta(seconds=1)
+                to_date = to_date.strftime('%Y-%m-%d %H:%M:%S')
+
+            # Выгружаем данные
+            orders = exporter.fetch_orders(from_date, to_date)
+            orders = exporter._filter_valid_orders(orders)
+            salons = exporter.group_by_salon(orders)
+
+            total = {
+                'orders_count': sum(s['orders_count'] for s in salons),
+                'shipment_sum': sum(s['shipment_sum'] for s in salons),
+                'avg_check': 0
+            }
+            if total['orders_count'] > 0:
+                total['avg_check'] = total['shipment_sum'] / total['orders_count']
+
+            result = {
+                'period': {
+                    'from': from_date,
+                    'to': to_date,
+                    'label': f"{1}-{datetime(year, month, 1).day} {datetime(year, month, 1).strftime('%B %Y')}"
+                },
+                'salons': salons,
+                'total': total,
+                'cached': False,
+                'generated_at': datetime.now().isoformat()
+            }
+        else:
+            # Текущий месяц (использует кэш)
+            result = exporter.get_current_month_stats()
+            result['generated_at'] = datetime.now().isoformat()
+
+        return jsonify(result)
+
+    except ValueError as e:
+        return jsonify({'error': f'Неверные параметры: {str(e)}'}), 400
+    except Exception as e:
+        print(f'[ERROR] /api/sales/current-month: {e}')
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/sales/compare-periods')
+@require_session
+def api_sales_compare_periods():
+    """
+    Сравнить два периода.
+
+    Query params:
+        from: Начальная дата текущего периода (YYYY-MM-DD)
+        to: Конечная дата текущего периода (YYYY-MM-DD)
+        compare_from (опционально): Начальная дата для сравнения
+        compare_to (опционально): Конечная дата для сравнения
+
+    Returns:
+        JSON с сравнением двух периодов
+    """
+    try:
+        from_date = request.args.get('from')
+        to_date = request.args.get('to')
+
+        if not from_date or not to_date:
+            return jsonify({'error': 'Не указаны параметры from и to'}), 400
+
+        # Конвертируем даты
+        from_dt = datetime.strptime(from_date, '%Y-%m-%d')
+        to_dt = datetime.strptime(to_date, '%Y-%m-%d')
+
+        from_date_str = from_dt.strftime('%Y-%m-%d %H:%M:%S')
+        to_date_str = (to_dt + timedelta(days=1) - timedelta(seconds=1)).strftime('%Y-%m-%d %H:%M:%S')
+
+        # Период для сравнения (по умолчанию прошлый год)
+        compare_from = request.args.get('compare_from')
+        compare_to = request.args.get('compare_to')
+
+        if compare_from and compare_to:
+            compare_from_dt = datetime.strptime(compare_from, '%Y-%m-%d')
+            compare_to_dt = datetime.strptime(compare_to, '%Y-%m-%d')
+            compare_from_str = compare_from_dt.strftime('%Y-%m-%d %H:%M:%S')
+            compare_to_str = (compare_to_dt + timedelta(days=1) - timedelta(seconds=1)).strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            # По умолчанию сравниваем с прошлым годом
+            compare_from_dt = from_dt.replace(year=from_dt.year - 1)
+            compare_to_dt = to_dt.replace(year=to_dt.year - 1)
+            compare_from_str = compare_from_dt.strftime('%Y-%m-%d %H:%M:%S')
+            compare_to_str = (compare_to_dt + timedelta(days=1) - timedelta(seconds=1)).strftime('%Y-%m-%d %H:%M:%S')
+
+        exporter = get_sales_exporter()
+        result = exporter.compare_periods(
+            from_date_str, to_date_str,
+            compare_from_str, compare_to_str
+        )
+
+        result['generated_at'] = datetime.now().isoformat()
+
+        return jsonify(result)
+
+    except ValueError as e:
+        return jsonify({'error': f'Неверный формат даты: {str(e)}'}), 400
+    except Exception as e:
+        print(f'[ERROR] /api/sales/compare-periods: {e}')
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/sales/monthly-comparison')
+@require_session
+def api_sales_monthly_comparison():
+    """
+    Получить данные по месяцам для сравнения с прошлым годом.
+
+    Query params:
+        year (опционально): Год (по умолчанию текущий)
+
+    Returns:
+        JSON с данными по месяцам
+    """
+    try:
+        year = request.args.get('year', type=int)
+
+        exporter = get_sales_exporter()
+        result = exporter.get_monthly_comparison(year)
+        result['generated_at'] = datetime.now().isoformat()
+
+        return jsonify(result)
+
+    except Exception as e:
+        print(f'[ERROR] /api/sales/monthly-comparison: {e}')
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/sales/cache/clear', methods=['POST'])
+@require_session
+def api_sales_cache_clear():
+    """
+    Очистить кэш аналитики продаж.
+
+    Returns:
+        JSON с подтверждением
+    """
+    try:
+        exporter = get_sales_exporter()
+
+        # Удаляем все файлы кэша
+        import glob
+        cache_files = glob.glob(str(exporter.cache_dir / '*.json'))
+        deleted_count = 0
+
+        for cache_file in cache_files:
+            try:
+                os.remove(cache_file)
+                deleted_count += 1
+            except:
+                pass
+
+        return jsonify({
+            'success': True,
+            'message': f'Удалено {deleted_count} файлов кэша',
+            'timestamp': datetime.now().isoformat()
+        })
+
+    except Exception as e:
+        print(f'[ERROR] /api/sales/cache/clear: {e}')
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
 
 
 def main():

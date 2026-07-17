@@ -1,0 +1,6 @@
+{
+  "ttl_seconds": 3600,
+  "enabled": true,
+  "cache_dir": "data/cache",
+  "note": "Кэширование данных API. TTL = 1 час (3600 секунд)"
+}

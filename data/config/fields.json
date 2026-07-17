@@ -1,0 +1,8 @@
+{
+  "salon_field": "shipmentStore",
+  "sum_field": "summ",
+  "total_sum_field": "totalSumm",
+  "date_field": "createdAt",
+  "status_field": "status",
+  "note": "Поля заказов в RetailCRM API. Обновлено после Фазы 1 (исследование API)"
+}
