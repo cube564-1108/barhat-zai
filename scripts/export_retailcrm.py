@@ -4,6 +4,7 @@
 """
 
 import os
+import sys
 import ssl
 import urllib3
 import logging
@@ -12,8 +13,12 @@ from typing import List, Dict, Any
 import json
 from dotenv import load_dotenv
 
-# Настраиваем логирование
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# Настраиваем логирование в stderr
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    stream=sys.stderr
+)
 logger = logging.getLogger(__name__)
 
 # Отключаем предупреждения SSL (для self-signed certificates)
