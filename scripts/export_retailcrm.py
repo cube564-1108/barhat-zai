@@ -6,10 +6,15 @@
 import os
 import ssl
 import urllib3
+import logging
 from datetime import datetime
 from typing import List, Dict, Any
 import json
 from dotenv import load_dotenv
+
+# Настраиваем логирование
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 # Отключаем предупреждения SSL (для self-signed certificates)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -26,8 +31,8 @@ class RetailCRMExporter:
         self.api_key = os.getenv('RETAILCRM_API_KEY')
 
         # Логируем для отладки (без ключа!)
-        print(f"[DEBUG] RetailCRM URL: {self.api_url}")
-        print(f"[DEBUG] API Key: {'SET' if self.api_key else 'NOT SET'}")
+        logger.info(f"RetailCRM URL: {self.api_url}")
+        logger.info(f"API Key: {'***SET***' if self.api_key else 'NOT SET'}")
 
         if not self.api_url or not self.api_key:
             raise ValueError("RETAILCRM_API_URL и RETAILCRM_API_KEY должны быть указаны в .env")
