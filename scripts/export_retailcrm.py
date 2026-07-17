@@ -28,19 +28,50 @@ class RetailCRMExporter:
         if not self.api_url or not self.api_key:
             raise ValueError("RETAILCRM_API_URL и RETAILCRM_API_KEY должны быть указаны в .env")
 
-        # Создаём PoolManager с кастомным SSL контекстом
-        # Используем urllib3 напрямую для лучшего контроля SSL
-        self.ssl_context = ssl.create_default_context()
+        # Создаём максимально permissive SSL context
+        # Это необходимо для соединения с RetailCRM при проблемах с сертификатом
+        self.ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
         self.ssl_context.check_hostname = False
         self.ssl_context.verify_mode = ssl.CERT_NONE
+        # Устанавливаем минимальный уровень безопасности для совместимости
+        try:
+            self.ssl_context.set_ciphers('DEFAULT:@SECLEVEL=0')
+        except Exception:
+            pass  # Игнорируем если не поддерживается
+        # Разрешаем все поддерживаемые TLS версии
+        try:
+            self.ssl_context.minimum_version = ssl.TLSVersion.TLSv1
+        except Exception:
+            pass
+        try:
+            self.ssl_context.maximum_version = ssl.TLSVersion.MAXIMUM_SUPPORTED
+        except Exception:
+            pass
 
-        # Создаём HTTP connection pool без SSL проверки
-        self.http = urllib3.PoolManager(
-            cert_reqs='CERT_NONE',
-            assert_hostname=False,
-            timeout=urllib3.Timeout(connect=10, read=30),
-            retries=urllib3.Retry(total=3, backoff_factor=0.5)
-        )
+        # Создаём HTTP connection pool
+        # Пробуем разные варианты инициализации для совместимости
+        try:
+            # Вариант 1: с ssl_context (новые версии urllib3)
+            self.http = urllib3.PoolManager(
+                ssl_context=self.ssl_context,
+                timeout=urllib3.Timeout(connect=10, read=30),
+                retries=urllib3.Retry(total=3, backoff_factor=0.5)
+            )
+        except TypeError:
+            # Вариант 2: с cert_reqs и assert_hostname (старые версии)
+            try:
+                self.http = urllib3.PoolManager(
+                    cert_reqs='CERT_NONE',
+                    assert_hostname=False,
+                    timeout=urllib3.Timeout(connect=10, read=30),
+                    retries=urllib3.Retry(total=3, backoff_factor=0.5)
+                )
+            except Exception:
+                # Вариант 3: самый простой fallback
+                self.http = urllib3.PoolManager(
+                    timeout=urllib3.Timeout(connect=10, read=30),
+                    retries=urllib3.Retry(total=3, backoff_factor=0.5)
+                )
 
         self.headers = {
             'X-API-Key': self.api_key
@@ -75,7 +106,7 @@ class RetailCRMExporter:
             url += "&fields=id,number,status,sum,totalSum,createdAt,updatedAt,customer,paymentType,deliveryType,cost"
 
             try:
-                # Используем urllib3 вместо requests
+                # Используем urllib3
                 response = self.http.request(
                     'GET',
                     url,
@@ -85,15 +116,17 @@ class RetailCRMExporter:
                 if response.status != 200:
                     print(f"Ошибка HTTP: {response.status}")
                     if response.status >= 500:
-                        # Server error - продолжаем пытаться
+                        # Server error - прерываем
                         break
                     elif response.status == 401:
                         print("Ошибка авторизации - проверьте API ключ")
                         break
+                    elif response.status == 403:
+                        print("Ошибка доступа - нет прав на ресурс")
+                        break
                     continue
 
                 # Парсим JSON ответ
-                import json
                 data = json.loads(response.data.decode('utf-8'))
 
                 if not data.get('success'):
@@ -118,10 +151,16 @@ class RetailCRMExporter:
                 offset += limit
 
             except urllib3.exceptions.HTTPError as e:
-                print(f"Ошибка при запросе: {e}")
+                print(f"Ошибка HTTP при запросе: {e}")
+                break
+            except urllib3.exceptions.SSLError as e:
+                print(f"Ошибка SSL при запросе: {e}")
+                print("Это может быть связано с проблемами сертификата RetailCRM")
                 break
             except Exception as e:
-                print(f"Неожиданная ошибка: {e}")
+                print(f"Неожиданная ошибка: {type(e).__name__}: {e}")
+                import traceback
+                traceback.print_exc()
                 break
 
         print(f"Всего загружено заказов: {len(all_orders)}")
