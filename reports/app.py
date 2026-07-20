@@ -468,36 +468,66 @@ def health():
 # Mock данные для аналитики продаж
 # ============================================================
 
-def get_mock_current_month():
-    """Mock данные для текущего месяца."""
-    now = datetime.now()
-    from_date = datetime(now.year, now.month, 1).strftime('%Y-%m-%d %H:%M:%S')
+def get_mock_current_month(year=None, month=None):
+    """
+    Mock данные для текущего месяца.
 
-    # Реальные салоны из конфига
-    all_salons = [
-        {'name': 'Академ Вяземская 3', 'orders_count': 142, 'shipment_sum': 443750, 'avg_check': 3125},
-        {'name': 'Барнаул Лазурная 1', 'orders_count': 98, 'shipment_sum': 294000, 'avg_check': 3000},
-        {'name': 'Барнаул Советская 7', 'orders_count': 87, 'shipment_sum': 261000, 'avg_check': 3000},
-        {'name': 'ЕКБ Бажова 89', 'orders_count': 156, 'shipment_sum': 487500, 'avg_check': 3125},
-        {'name': 'ЕКБ Белинского 167', 'orders_count': 64, 'shipment_sum': 192000, 'avg_check': 3000},
-        {'name': 'НСК Блюхера 61', 'orders_count': 203, 'shipment_sum': 609000, 'avg_check': 3000},
-        {'name': 'НСК Богдана Хмельницкого 14', 'orders_count': 45, 'shipment_sum': 135000, 'avg_check': 3000},
-        {'name': 'НСК Восход 3', 'orders_count': 112, 'shipment_sum': 336000, 'avg_check': 3000},
-        {'name': 'НСК Железнодорожная 15/1', 'orders_count': 78, 'shipment_sum': 234000, 'avg_check': 3000},
-        {'name': 'Томск Дальне-Ключевская 16а', 'orders_count': 134, 'shipment_sum': 402000, 'avg_check': 3000},
-        {'name': 'Томск Фрунзе 102', 'orders_count': 67, 'shipment_sum': 209250, 'avg_check': 3125},
-        {'name': 'Челябинск Свердловский проспект 23', 'orders_count': 89, 'shipment_sum': 267000, 'avg_check': 3000},
-        {'name': 'Челябинск Цвиллинга 59', 'orders_count': 56, 'shipment_sum': 168000, 'avg_check': 3000}
+    Args:
+        year: Год (по умолчанию текущий)
+        month: Месяц (по умолчанию текущий)
+    """
+    if year is None:
+        year = datetime.now().year
+    if month is None:
+        month = datetime.now().month
+
+    now = datetime.now()
+    from_date = datetime(year, month, 1).strftime('%Y-%m-%d %H:%M:%S')
+
+    # Разные данные для разных месяцев (для демонстрации)
+    month_factor = (month % 3) + 1  # 1, 2, или 3
+    base_orders = [142, 98, 87, 156, 64, 203, 45, 112, 78, 134, 67, 89, 56]
+    base_orders = [int(x * (0.7 + month_factor * 0.15)) for x in base_orders]  # Варьируем сильнее
+    base_avg_checks = [3125, 3000, 3000, 3125, 3000, 3000, 3000, 3000, 3000, 3000, 3125, 3000, 3000]
+
+    # Генерируем салоны с варьирующимися данными
+    salon_names = [
+        'Академ Вяземская 3', 'Барнаул Лазурная 1', 'Барнаул Советская 7',
+        'ЕКБ Бажова 89', 'ЕКБ Белинского 167', 'НСК Блюхера 61',
+        'НСК Богдана Хмельницкого 14', 'НСК Восход 3', 'НСК Железнодорожная 15/1',
+        'Томск Дальне-Ключевская 16а', 'Томск Фрунзе 102',
+        'Челябинск Свердловский проспект 23', 'Челябинск Цвиллинга 59'
     ]
+
+    all_salons = []
+    for i, name in enumerate(salon_names):
+        orders = base_orders[i]
+        avg_check = base_avg_checks[i]
+        shipment_sum = orders * avg_check
+        all_salons.append({
+            'name': name,
+            'orders_count': orders,
+            'shipment_sum': shipment_sum,
+            'avg_check': avg_check
+        })
 
     total_orders = sum(s['orders_count'] for s in all_salons)
     total_sum = sum(s['shipment_sum'] for s in all_salons)
 
+    # Вычисляем день месяца для label
+    if month == datetime.now().month and year == datetime.now().year:
+        last_day = datetime.now().day
+    else:
+        if month == 12:
+            last_day = 31
+        else:
+            last_day = (datetime(year, month + 1, 1) - timedelta(days=1)).day
+
     return {
         'period': {
             'from': from_date,
-            'to': now.strftime('%Y-%m-%d %H:%M:%S'),
-            'label': f"1-{now.day} {now.strftime('%B %Y')}"
+            'to': datetime(year, month, last_day, 23, 59, 59).strftime('%Y-%m-%d %H:%M:%S'),
+            'label': f"1-{last_day} {datetime(year, month, 1).strftime('%B %Y')}"
         },
         'salons': all_salons,
         'total': {
@@ -506,7 +536,7 @@ def get_mock_current_month():
             'avg_check': total_sum / total_orders if total_orders > 0 else 0
         },
         'cached': False,
-        'generated_at': now.isoformat()
+        'generated_at': datetime.now().isoformat()
     }
 
 def get_mock_monthly_comparison():
@@ -689,12 +719,62 @@ def api_sales_current_month():
                 cached['generated_at'] = datetime.now().isoformat()
                 return jsonify(cached)
 
-            # Если нет в кэше - не загружаем синхронно!
-            return jsonify({
-                'error': 'no_cache',
-                'message': 'Данные за этот период не загружены. Используйте /api/sales/refresh для загрузки в фоне.',
-                'cache_key': cache_key
-            }), 404
+            # Если включен принудительный mock режим - возвращаем mock
+            if SALES_USE_MOCK or SALES_MOCK_MODE:
+                print(f"[API] Mock режим - возвращаем mock данные для {year}-{month}")
+                mock_data = get_mock_current_month()
+                mock_data['_mock'] = True
+                return jsonify(mock_data)
+
+            # Для конкретного периода - пробуем загрузить (с ограничением по времени)
+            print(f"[API] Загружаем данные за {year}-{month} (может занять время...)")
+
+            from_date = datetime(year, month, 1).strftime('%Y-%m-%d %H:%M:%S')
+
+            if month == 12:
+                to_date = datetime(year, 12, 31, 23, 59, 59).strftime('%Y-%m-%d %H:%M:%S')
+            else:
+                to_date = datetime(year, month + 1, 1) - timedelta(seconds=1)
+                to_date = to_date.strftime('%Y-%m-%d %H:%M:%S')
+
+            try:
+                # Выгружаем данные с таймаутом
+                orders = exporter.fetch_orders(from_date, to_date)
+                orders = exporter._filter_valid_orders(orders)
+                salons = exporter.group_by_salon(orders)
+
+                total = {
+                    'orders_count': sum(s['orders_count'] for s in salons),
+                    'shipment_sum': sum(s['shipment_sum'] for s in salons),
+                    'avg_check': 0
+                }
+                if total['orders_count'] > 0:
+                    total['avg_check'] = total['shipment_sum'] / total['orders_count']
+
+                result = {
+                    'period': {
+                        'from': from_date,
+                        'to': to_date,
+                        'label': f"{1}-{datetime(year, month, 1).day} {datetime(year, month, 1).strftime('%B %Y')}"
+                    },
+                    'salons': salons,
+                    'total': total,
+                    'cached': False,
+                    'generated_at': datetime.now().isoformat()
+                }
+
+                # Сохраняем в кэш для будущих запросов
+                exporter._save_cache(result, cache_key)
+
+                return jsonify(result)
+
+            except Exception as e:
+                print(f"[API] Ошибка загрузки за период {year}-{month}: {e}")
+                # Возвращаем mock как fallback
+                mock_data = get_mock_current_month()
+                mock_data['_mock'] = True
+                mock_data['_error'] = str(e)
+                return jsonify(mock_data)
         else:
             # Текущий месяц - пробуем из кэша
             now = datetime.now()
