@@ -42,6 +42,7 @@ COPY data/ /app/data/
 COPY index.html /usr/share/nginx/html/index.html
 COPY sales-analytics.html /usr/share/nginx/html/sales-analytics.html
 COPY quality-report-14-18.html /usr/share/nginx/html/quality-report-14-18.html
+COPY night-shifts-monthly-analysis.html /usr/share/nginx/html/night-shifts-monthly-analysis.html
 COPY brand/tokens.css /usr/share/nginx/html/brand/tokens.css
 COPY brand/brand.css /usr/share/nginx/html/brand/brand.css
 COPY nginx.conf /etc/nginx/nginx.conf
