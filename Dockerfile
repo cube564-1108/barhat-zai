@@ -51,7 +51,7 @@ COPY supervisord.conf /etc/supervisor/conf.d/app.conf
 RUN mkdir -p /var/log/supervisor
 
 # Add RetailCRM to /etc/hosts to bypass DNS issues in container
-RUN echo "51.250.67.99 barhatretailcrm.retailcrm.ru" >> /etc/hosts
+RUN echo "158.160.175.86 barhatretailcrm.retailcrm.ru" >> /etc/hosts
 
 # Expose port
 EXPOSE 80
