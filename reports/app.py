@@ -7,6 +7,8 @@ import os
 import sys
 import json
 import subprocess
+import threading
+import time
 from datetime import datetime, timedelta
 from functools import wraps
 
@@ -23,6 +25,70 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from scripts.export_retailcrm_sales import SalesAnalyticsExporter
 
 load_dotenv()
+
+# ============================================================
+# Фоновый режим с кэшем
+# ============================================================
+
+# Глобальный статус загрузки
+cache_status = {
+    'loading': False,
+    'last_refresh': None,
+    'error': None,
+    'current_month_loaded': False
+}
+cache_lock = threading.Lock()
+
+def background_load_current_month():
+    """
+    Фоновая загрузка текущего месяца в кэш.
+    Запускается в отдельном потоке при старте контейнера.
+    """
+    global cache_status
+
+    with cache_lock:
+        if cache_status.get('loading'):
+            print("[BG] Загрузка уже идет...")
+            return
+        cache_status['loading'] = True
+        cache_status['error'] = None
+
+    print("[BG] Начинаем фоновую загрузку текущего месяца...")
+
+    try:
+        exporter = SalesAnalyticsExporter()
+        result = exporter.get_current_month_stats()
+
+        with cache_lock:
+            cache_status['loading'] = False
+            cache_status['last_refresh'] = datetime.now().isoformat()
+            cache_status['current_month_loaded'] = True
+            cache_status['error'] = None
+
+        total = result.get('total', {})
+        print(f"[BG] ✅ Загружено: {total.get('orders_count', 0)} заказов, "
+              f"{total.get('shipment_sum', 0):,.2f} ₽")
+
+    except Exception as e:
+        with cache_lock:
+            cache_status['loading'] = False
+            cache_status['error'] = str(e)
+
+        print(f"[BG] ❌ Ошибка загрузки: {e}")
+        import traceback
+        traceback.print_exc()
+
+
+def start_background_loader():
+    """Запустить фоновый загрузчик в отдельном потоке."""
+    def run_loader():
+        # Небольшая задержка чтобы Flask успел запуститься
+        time.sleep(2)
+        background_load_current_month()
+
+    thread = threading.Thread(target=run_loader, daemon=True)
+    thread.start()
+    print("[BG] Фоновый загрузчик запущен")
 
 # Конфигурация
 SSO_SECRET = os.environ.get("BARKHAT_SSO_SECRET", "")
@@ -531,6 +597,53 @@ def get_mock_compare_periods():
 # API эндпоинты аналитики продаж
 # ============================================================
 
+@app.route('/api/sales/status')
+@require_session
+def api_sales_status():
+    """
+    Получить статус загрузки кэша.
+
+    Returns:
+        JSON со статусом загрузки
+    """
+    with cache_lock:
+        return jsonify({
+            'loading': cache_status.get('loading', False),
+            'last_refresh': cache_status.get('last_refresh'),
+            'error': cache_status.get('error'),
+            'current_month_loaded': cache_status.get('current_month_loaded', False)
+        })
+
+
+@app.route('/api/sales/refresh', methods=['POST'])
+@require_session
+def api_sales_refresh():
+    """
+    Принудительное обновление кэша.
+
+    Returns:
+        JSON с подтверждением запуска обновления
+    """
+    global cache_status
+
+    with cache_lock:
+        if cache_status.get('loading'):
+            return jsonify({
+                'success': False,
+                'message': 'Загрузка уже идет',
+                'status': cache_status.copy()
+            }), 409
+
+    # Запускаем в фоновом потоке
+    thread = threading.Thread(target=background_load_current_month, daemon=True)
+    thread.start()
+
+    return jsonify({
+        'success': True,
+        'message': 'Обновление запущено в фоне'
+    })
+
+
 @app.route('/api/sales/current-month')
 @require_session
 def api_sales_current_month():
@@ -556,7 +669,16 @@ def api_sales_current_month():
         month = request.args.get('month', type=int)
 
         if year is not None and month is not None:
-            # Запрашиваем конкретный месяц
+            # Запрашиваем конкретный месяц - пробуем из кэша
+            cache_key = f'current_month_{year}_{month}'
+            cached = exporter._load_cache(cache_key)
+
+            if cached is not None:
+                print(f"[API] Из кэша: {cache_key}")
+                cached['generated_at'] = datetime.now().isoformat()
+                return jsonify(cached)
+
+            # Если нет в кэше - загружаем
             from_date = datetime(year, month, 1).strftime('%Y-%m-%d %H:%M:%S')
 
             if month == 12:
@@ -589,12 +711,42 @@ def api_sales_current_month():
                 'cached': False,
                 'generated_at': datetime.now().isoformat()
             }
-        else:
-            # Текущий месяц (использует кэш)
-            result = exporter.get_current_month_stats()
-            result['generated_at'] = datetime.now().isoformat()
 
-        return jsonify(result)
+            # Сохраняем в кэш
+            exporter._save_cache(result, cache_key)
+
+            return jsonify(result)
+        else:
+            # Текущий месяц - пробуем из кэша
+            now = datetime.now()
+            cache_key = f'current_month_{now.year}_{now.month}'
+            cached = exporter._load_cache(cache_key)
+
+            if cached is not None:
+                print(f"[API] Из кэша: {cache_key}")
+                cached['generated_at'] = datetime.now().isoformat()
+                return jsonify(cached)
+
+            # Если кэш пуст - проверяем статус загрузки
+            with cache_lock:
+                if cache_status.get('loading'):
+                    return jsonify({
+                        'error': 'loading',
+                        'message': 'Данные загружаются в фоне, попробуйте через минуту',
+                        'status': cache_status.copy()
+                    }), 202
+
+                if cache_status.get('error'):
+                    return jsonify({
+                        'error': 'cache_error',
+                        'message': 'Ошибка загрузки данных',
+                        'details': cache_status.get('error'),
+                        'status': cache_status.copy()
+                    }), 503
+
+            # Если не загружается - возвращаем mock как fallback
+            print("[API] Кэш пуст и не загружается, возвращаем mock данные")
+            return jsonify(get_mock_current_month())
 
     except ValueError as e:
         return jsonify({'error': f'Неверные параметры: {str(e)}'}), 400
@@ -655,6 +807,16 @@ def api_sales_compare_periods():
             compare_to_str = (compare_to_dt + timedelta(days=1) - timedelta(seconds=1)).strftime('%Y-%m-%d %H:%M:%S')
 
         exporter = get_sales_exporter()
+
+        # Пробуем из кэша
+        cache_key = f'compare_{from_date_str}_{to_date_str}_vs_{compare_from_str}_{compare_to_str}'
+        cached = exporter._load_cache(cache_key)
+        if cached is not None:
+            print(f"[API] Из кэша: {cache_key}")
+            cached['generated_at'] = datetime.now().isoformat()
+            return jsonify(cached)
+
+        # Если нет в кэше - загружаем
         result = exporter.compare_periods(
             from_date_str, to_date_str,
             compare_from_str, compare_to_str
@@ -691,8 +853,20 @@ def api_sales_monthly_comparison():
 
     try:
         year = request.args.get('year', type=int)
+        if year is None:
+            year = datetime.now().year
 
         exporter = get_sales_exporter()
+
+        # Пробуем из кэша
+        cache_key = f'monthly_{year}'
+        cached = exporter._load_cache(cache_key)
+        if cached is not None:
+            print(f"[API] Из кэша: {cache_key}")
+            cached['generated_at'] = datetime.now().isoformat()
+            return jsonify(cached)
+
+        # Если нет в кэше - загружаем
         result = exporter.get_monthly_comparison(year)
         result['generated_at'] = datetime.now().isoformat()
 
@@ -749,6 +923,13 @@ def main():
 
     print(f"🌸 Запуск сервера отчетов Бархат на порту {port}")
     print(f"📊 Открой в браузере: http://localhost:{port}")
+
+    # Запускаем фоновый загрузчик если не mock режим
+    if not SALES_MOCK_MODE:
+        print("🔄 Запускаем фоновый загрузчик...")
+        start_background_loader()
+    else:
+        print("⚠️ Mock режим - фоновый загрузчик отключен")
 
     app.run(host='0.0.0.0', port=port, debug=debug)
 
