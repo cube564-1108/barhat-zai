@@ -385,12 +385,6 @@
         <canvas id="salonChart"></canvas>
       </div>
     </div>
-    <div class="chart-card">
-      <h3>Динамика по месяцам</h3>
-      <div class="chart-container">
-        <canvas id="monthlyChart"></canvas>
-      </div>
-    </div>
   </div>
 
   <!-- Таблица -->
@@ -431,7 +425,6 @@
     const API_BASE = '/api/sales';
     let currentData = null;
     let salonChart = null;
-    let monthlyChart = null;
 
     // Форматирование чисел
     const formatNumber = new Intl.NumberFormat('ru-RU', {
@@ -462,10 +455,6 @@
         renderTable(data);
         updateCachedBadge(data.cached);
 
-        // Загружаем месячную динамику
-        const monthlyData = await fetchMonthlyComparison();
-        renderMonthlyChart(monthlyData);
-
       } catch (error) {
         showError('Ошибка загрузки данных: ' + error.message);
       } finally {
@@ -483,14 +472,6 @@
     }
 
     // API: Месячное сравнение
-    async function fetchMonthlyComparison() {
-      const year = new Date().getFullYear();
-      const response = await fetch(`${API_BASE}/monthly-comparison?year=${year}`);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      return await response.json();
-    }
 
     // API: Сравнение периодов
     async function fetchComparePeriods(from, to, compareFrom, compareTo) {
@@ -603,66 +584,6 @@
     }
 
     // Рендер месячного графика
-    function renderMonthlyChart(data) {
-      const ctx = document.getElementById('monthlyChart').getContext('2d');
-
-      if (monthlyChart) {
-        monthlyChart.destroy();
-      }
-
-      const months = (data.months || []);
-      const labels = months.map(m => m.month_name);
-      const currentValues = months.map(m => m.total?.shipment_sum || 0);
-      const lastYearValues = months.map(m => m.total?.shipment_sum_last_year || 0);
-
-      monthlyChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: `${data.year} год`,
-              data: currentValues,
-              borderColor: 'rgba(65, 19, 48, 0.8)',
-              backgroundColor: 'rgba(65, 19, 48, 0.1)',
-              fill: true,
-              tension: 0.4
-            },
-            {
-              label: `${data.last_year || data.year - 1} год`,
-              data: lastYearValues,
-              borderColor: 'rgba(156, 156, 156, 0.6)',
-              backgroundColor: 'rgba(156, 156, 156, 0.05)',
-              borderDash: [5, 5],
-              fill: false,
-              tension: 0.4
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              display: true,
-              position: 'top',
-              labels: {
-                usePointStyle: true,
-                padding: 15
-              }
-            }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: {
-                callback: value => formatNumber(value)
-              }
-            }
-          }
-        }
-      });
-    }
 
     // Рендер таблицы
     function renderTable(data) {
