@@ -97,7 +97,41 @@ class RetailCRMExporter:
         except Exception:
             pass
 
-        # Создаём HTTP connection pool
+        # Выбираем метод запроса: requests предпочтительнее
+        self.use_requests = REQUESTS_AVAILABLE
+
+        if self.use_requests:
+            logger.info("Using requests library for API calls")
+            # Создаём Session с правильным SSL context для SNI
+            self.requests_session = requests.Session()
+            self.requests_session.verify = False
+            # Используем наш SSL context через urllib3 HTTPAdapter
+            try:
+                from requests.adapters import HTTPAdapter
+                # Создаём urllib3 pool manager с нашим SSL context
+                self.pool_manager = urllib3.PoolManager(
+                    ssl_context=self.ssl_context,
+                    timeout=urllib3.Timeout(connect=10, read=30),
+                    retries=urllib3.Retry(total=3, backoff_factor=0.5)
+                )
+                # Создаём adapter с нашим pool manager
+                class SNIAdapter(HTTPAdapter):
+                    def __init__(self, pool_manager, *args, **kwargs):
+                        self._pool_manager = pool_manager
+                        super().__init__(*args, **kwargs)
+
+                    def init_poolmanager(self, connections, maxsize, block=False):
+                        return self._pool_manager
+
+                self.requests_session.mount('https://', SNIAdapter(self.pool_manager))
+                logger.info("Configured requests Session with custom SSL context")
+            except Exception as e:
+                logger.warning(f"Failed to configure custom SSL adapter: {e}")
+                logger.info("Falling back to default requests with verify=False")
+        else:
+            logger.info("Using urllib3 for API calls")
+
+        # Создаём HTTP connection pool для urllib3 fallback
         # Пробуем разные варианты инициализации для совместимости
         try:
             # Вариант 1: с ssl_context (новые версии urllib3)
@@ -165,15 +199,13 @@ class RetailCRMExporter:
 
             try:
                 if self.use_requests:
-                    # Используем requests с отключенной верификацией SSL
-                    # Добавляем правильный Host header для SNI
-                    logger.info("Using requests library...")
+                    # Используем requests Session с custom SSL context для SNI
+                    logger.info("Using requests library with custom SSL...")
                     headers_with_host = {**self.headers, 'Host': self.api_hostname}
-                    response = requests.get(
+                    response = self.requests_session.get(
                         url,
                         headers=headers_with_host,
-                        timeout=30,
-                        verify=False  # Отключаем проверку SSL
+                        timeout=30
                     )
                     logger.info(f"Got response: status={response.status_code}")
 
