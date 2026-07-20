@@ -99,6 +99,13 @@ SSO_ENABLED = bool(SSO_SECRET)
 # Mock режим для аналитики продаж (для тестирования фронтенда без API)
 SALES_MOCK_MODE = os.environ.get("SALES_MOCK_MODE", "false").lower() == "true"
 
+# Принудительный mock режим (без попыток обращения к API)
+SALES_USE_MOCK = os.environ.get("SALES_USE_MOCK", "false").lower() == "true"
+
+if SALES_USE_MOCK:
+    print("🔧 SALES_USE_MOCK=true - принудительный mock режим, API запросы отключены")
+    SALES_MOCK_MODE = True  # Включаем mock режим
+
 if not SSO_ENABLED:
     print("⚠️  WARNING: BARKHAT_SSO_SECRET not set — SSO disabled, running in open mode")
     print("⚠️  Set BARKHAT_SSO_SECRET environment variable to enable authentication")
@@ -934,6 +941,9 @@ def main():
         start_background_loader()
     else:
         print("⚠️ Mock режим - фоновый загрузчик отключен")
+        with cache_lock:
+            cache_status['using_mock'] = True
+            cache_status['loading'] = False
 
     app.run(host='0.0.0.0', port=port, debug=debug)
 
