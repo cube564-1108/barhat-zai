@@ -1,0 +1,274 @@
+{
+  "current_month": {
+    "period": {
+      "from": "2026-07-01",
+      "to": "2026-07-17",
+      "label": "1-17 июля 2026"
+    },
+    "salons": [
+      {
+        "id": "akadem-vyazemskaya-3",
+        "name": "Академ Вяземская 3",
+        "city": "Академ",
+        "shipment_sum": 85000,
+        "orders_count": 45,
+        "avg_check": 1889
+      },
+      {
+        "id": "barnaul-lazurnaya-1",
+        "name": "Барнаул Лазурная 1",
+        "city": "Барнаул",
+        "shipment_sum": 95000,
+        "orders_count": 52,
+        "avg_check": 1827
+      },
+      {
+        "id": "barnaul-sovetskaya-7",
+        "name": "Барнаул Советская 7",
+        "city": "Барнаул",
+        "shipment_sum": 78000,
+        "orders_count": 41,
+        "avg_check": 1902
+      },
+      {
+        "id": "ekb-bazhova-89",
+        "name": "ЕКБ Бажова 89",
+        "city": "Екатеринбург",
+        "shipment_sum": 125000,
+        "orders_count": 68,
+        "avg_check": 1838
+      },
+      {
+        "id": "ekb-belinskogo-167",
+        "name": "ЕКБ Белинского 167",
+        "city": "Екатеринбург",
+        "shipment_sum": 118000,
+        "orders_count": 62,
+        "avg_check": 1903
+      },
+      {
+        "id": "nsk-blyuhera-61",
+        "name": "НСК Блюхера 61",
+        "city": "Новосибирск",
+        "shipment_sum": 145000,
+        "orders_count": 78,
+        "avg_check": 1859
+      },
+      {
+        "id": "nsk-khmelnitskogo-14",
+        "name": "НСК Богдана Хмельницкого 14",
+        "city": "Новосибирск",
+        "shipment_sum": 132000,
+        "orders_count": 71,
+        "avg_check": 1859
+      },
+      {
+        "id": "nsk-voskhod-3",
+        "name": "НСК Восход 3",
+        "city": "Новосибирск",
+        "shipment_sum": 98000,
+        "orders_count": 53,
+        "avg_check": 1849
+      },
+      {
+        "id": "nsk-zheleznodorozhnaya-15-1",
+        "name": "НСК Железнодорожная 15/1",
+        "city": "Новосибирск",
+        "shipment_sum": 105000,
+        "orders_count": 56,
+        "avg_check": 1875
+      },
+      {
+        "id": "tomsk-dalne-klyuchevskaya-16a",
+        "name": "Томск Дальне-Ключевская 16а",
+        "city": "Томск",
+        "shipment_sum": 88000,
+        "orders_count": 47,
+        "avg_check": 1872
+      },
+      {
+        "id": "tomsk-frunze-102",
+        "name": "Томск Фрунзе 102",
+        "city": "Томск",
+        "shipment_sum": 92000,
+        "orders_count": 49,
+        "avg_check": 1878
+      },
+      {
+        "id": "chelyabinsk-sverdlovskiy-23",
+        "name": "Челябинск Свердловский проспект 23",
+        "city": "Челябинск",
+        "shipment_sum": 155000,
+        "orders_count": 82,
+        "avg_check": 1890
+      },
+      {
+        "id": "chelyabinsk-tsvillinga-59",
+        "name": "Челябинск Цвиллинга 59",
+        "city": "Челябинск",
+        "shipment_sum": 168000,
+        "orders_count": 88,
+        "avg_check": 1909
+      }
+    ],
+    "total": {
+      "shipment_sum": 1584000,
+      "orders_count": 842,
+      "avg_check": 1881
+    },
+    "cached": false,
+    "generated_at": "2026-07-17T10:30:00Z"
+  },
+  "compare_periods": {
+    "current_period": {
+      "from": "2026-07-01",
+      "to": "2026-07-17",
+      "shipment_sum": 1584000,
+      "orders_count": 842,
+      "avg_check": 1881
+    },
+    "previous_year_period": {
+      "from": "2025-07-01",
+      "to": "2025-07-17",
+      "shipment_sum": 1230000,
+      "orders_count": 645,
+      "avg_check": 1907
+    },
+    "growth": {
+      "shipment_sum_percent": 28.8,
+      "orders_count_percent": 30.5,
+      "avg_check_percent": -1.4
+    },
+    "by_salon": [
+      {
+        "id": "akadem-vyazemskaya-3",
+        "name": "Академ Вяземская 3",
+        "current": 85000,
+        "previous": 65000,
+        "growth_percent": 30.8
+      },
+      {
+        "id": "chelyabinsk-sverdlovskiy-23",
+        "name": "Челябинск Свердловский проспект 23",
+        "current": 155000,
+        "previous": 118000,
+        "growth_percent": 31.4
+      }
+    ],
+    "cached": false
+  },
+  "monthly_comparison": {
+    "year": 2026,
+    "months": [
+      {
+        "period": "2026-01",
+        "current_year": {
+          "shipment_sum": 2150000,
+          "orders_count": 1123,
+          "avg_check": 1914
+        },
+        "previous_year": {
+          "shipment_sum": 1650000,
+          "orders_count": 878,
+          "avg_check": 1879
+        },
+        "growth": {
+          "shipment_sum_percent": 30.3,
+          "orders_count_percent": 27.9,
+          "avg_check_percent": 1.9
+        }
+      },
+      {
+        "period": "2026-02",
+        "current_year": {
+          "shipment_sum": 1950000,
+          "orders_count": 1023,
+          "avg_check": 1906
+        },
+        "previous_year": {
+          "shipment_sum": 1480000,
+          "orders_count": 795,
+          "avg_check": 1862
+        },
+        "growth": {
+          "shipment_sum_percent": 31.8,
+          "orders_count_percent": 28.7,
+          "avg_check_percent": 2.4
+        }
+      },
+      {
+        "period": "2026-03",
+        "current_year": {
+          "shipment_sum": 2250000,
+          "orders_count": 1178,
+          "avg_check": 1910
+        },
+        "previous_year": {
+          "shipment_sum": 1720000,
+          "orders_count": 912,
+          "avg_check": 1886
+        },
+        "growth": {
+          "shipment_sum_percent": 30.8,
+          "orders_count_percent": 29.2,
+          "avg_check_percent": 1.3
+        }
+      },
+      {
+        "period": "2026-04",
+        "current_year": {
+          "shipment_sum": 2180000,
+          "orders_count": 1145,
+          "avg_check": 1904
+        },
+        "previous_year": {
+          "shipment_sum": 1650000,
+          "orders_count": 878,
+          "avg_check": 1879
+        },
+        "growth": {
+          "shipment_sum_percent": 32.1,
+          "orders_count_percent": 30.4,
+          "avg_check_percent": 1.3
+        }
+      },
+      {
+        "period": "2026-05",
+        "current_year": {
+          "shipment_sum": 2450000,
+          "orders_count": 1285,
+          "avg_check": 1907
+        },
+        "previous_year": {
+          "shipment_sum": 1860000,
+          "orders_count": 982,
+          "avg_check": 1894
+        },
+        "growth": {
+          "shipment_sum_percent": 31.7,
+          "orders_count_percent": 30.9,
+          "avg_check_percent": 0.7
+        }
+      },
+      {
+        "period": "2026-06",
+        "current_year": {
+          "shipment_sum": 2890000,
+          "orders_count": 1512,
+          "avg_check": 1911
+        },
+        "previous_year": {
+          "shipment_sum": 2150000,
+          "orders_count": 1123,
+          "avg_check": 1914
+        },
+        "growth": {
+          "shipment_sum_percent": 34.4,
+          "orders_count_percent": 34.6,
+          "avg_check_percent": -0.2
+        }
+      }
+    ],
+    "cached": false
+  }
+}

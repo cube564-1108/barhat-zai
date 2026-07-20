@@ -1,0 +1,281 @@
+{
+  "slug": 259673,
+  "bonusesCreditTotal": 0,
+  "bonusesChargeTotal": 0,
+  "id": 259673,
+  "number": "152722",
+  "externalId": "152722",
+  "orderType": "eshop-individual",
+  "orderMethod": "shopping-cart",
+  "privilegeType": "none",
+  "countryIso": "RU",
+  "createdAt": "2026-07-17 16:05:38",
+  "statusUpdatedAt": "2026-07-17 16:05:39",
+  "summ": 4833,
+  "totalSumm": 4833,
+  "prepaySum": 0,
+  "purchaseSumm": 1199.56,
+  "markDatetime": "2026-07-17 16:05:39",
+  "lastName": "Степан",
+  "firstName": "Степан",
+  "phone": "+79628103967",
+  "email": "beresnev.stepan27@gmail.com",
+  "call": false,
+  "expired": false,
+  "customer": {
+    "type": "customer",
+    "id": 493168,
+    "externalId": "10014848",
+    "isContact": false,
+    "createdAt": "2026-07-17 16:05:37",
+    "vip": false,
+    "bad": false,
+    "site": "zakazy-new",
+    "contragent": {
+      "contragentType": "individual"
+    },
+    "tags": [],
+    "customFields": {
+      "segment": "Заказ с сайта",
+      "wappi_chat_create": false,
+      "customer_12317d55_b31f": false,
+      "zapros_na_otsenku_otpravlen": false
+    },
+    "personalDiscount": 0,
+    "marginSumm": 0,
+    "totalSumm": 0,
+    "averageSumm": 0,
+    "ordersCount": 0,
+    "address": {
+      "id": 141018,
+      "text": "Алтайский край, Барнаул, проезд Цукановой, 11"
+    },
+    "segments": [],
+    "firstName": "Степан",
+    "lastName": "",
+    "presumableSex": "male",
+    "email": "beresnev.stepan27@gmail.com",
+    "emailMarketingUnsubscribedAt": "2026-07-17 16:05:38",
+    "customerSubscriptions": [
+      {
+        "subscription": {
+          "id": 2,
+          "channel": "email",
+          "name": "Без тематики",
+          "code": "default_marketing",
+          "active": true,
+          "autoSubscribe": true,
+          "ordering": 1
+        },
+        "subscribed": false,
+        "changedAt": "2026-07-17 16:05:38"
+      }
+    ],
+    "phones": [
+      {
+        "number": "+7 (962) 810-39-67"
+      }
+    ],
+    "birthday": "2026-07-17",
+    "mgCustomers": []
+  },
+  "contact": {
+    "type": "customer",
+    "id": 493168,
+    "externalId": "10014848",
+    "isContact": false,
+    "createdAt": "2026-07-17 16:05:37",
+    "vip": false,
+    "bad": false,
+    "site": "zakazy-new",
+    "contragent": {
+      "contragentType": "individual"
+    },
+    "tags": [],
+    "customFields": {
+      "segment": "Заказ с сайта",
+      "wappi_chat_create": false,
+      "customer_12317d55_b31f": false,
+      "zapros_na_otsenku_otpravlen": false
+    },
+    "personalDiscount": 0,
+    "marginSumm": 0,
+    "totalSumm": 0,
+    "averageSumm": 0,
+    "ordersCount": 0,
+    "address": {
+      "id": 141018,
+      "text": "Алтайский край, Барнаул, проезд Цукановой, 11"
+    },
+    "segments": [],
+    "firstName": "Степан",
+    "lastName": "",
+    "presumableSex": "male",
+    "email": "beresnev.stepan27@gmail.com",
+    "emailMarketingUnsubscribedAt": "2026-07-17 16:05:38",
+    "customerSubscriptions": [
+      {
+        "subscription": {
+          "id": 2,
+          "channel": "email",
+          "name": "Без тематики",
+          "code": "default_marketing",
+          "active": true,
+          "autoSubscribe": true,
+          "ordering": 1
+        },
+        "subscribed": false,
+        "changedAt": "2026-07-17 16:05:38"
+      },
+      {
+        "subscription": {
+          "id": 3,
+          "channel": "sms",
+          "name": "Без тематики",
+          "code": "default_marketing",
+          "active": true,
+          "autoSubscribe": true,
+          "ordering": 1
+        },
+        "subscribed": true
+      },
+      {
+        "subscription": {
+          "id": 4,
+          "channel": "waba",
+          "name": "Без тематики",
+          "code": "default_marketing",
+          "active": true,
+          "autoSubscribe": true,
+          "ordering": 1
+        },
+        "subscribed": true
+      },
+      {
+        "subscription": {
+          "id": 9,
+          "channel": "mg",
+          "name": "Без тематики",
+          "code": "default_marketing",
+          "active": true,
+          "autoSubscribe": true,
+          "ordering": 1
+        },
+        "subscribed": true
+      }
+    ],
+    "phones": [
+      {
+        "number": "+7 (962) 810-39-67"
+      }
+    ],
+    "birthday": "2026-07-17",
+    "mgCustomers": []
+  },
+  "contragent": {
+    "contragentType": "individual"
+  },
+  "delivery": {
+    "code": "dostavka-kurerom",
+    "integrationCode": "courier",
+    "data": {
+      "locked": false
+    },
+    "cost": 0,
+    "netCost": 0,
+    "date": "2026-07-18",
+    "time": {
+      "from": "10:00",
+      "to": "12:00"
+    },
+    "address": {
+      "countryIso": "RU",
+      "text": "Алтайский край, Барнаул, проезд Цукановой, 11, кв. 1"
+    }
+  },
+  "site": "zakazy-new",
+  "status": "new",
+  "items": [
+    {
+      "bonusesChargeTotal": 0,
+      "bonusesCreditTotal": 0,
+      "markingObjects": [],
+      "id": 369841,
+      "externalIds": [
+        {
+          "code": "bitrix",
+          "value": "0_7848"
+        },
+        {
+          "code": "bitrixBasketId",
+          "value": "54808#0_7848"
+        }
+      ],
+      "initialPrice": 5370,
+      "discounts": [
+        {
+          "type": "manual_product",
+          "amount": 537
+        }
+      ],
+      "discountTotal": 537,
+      "prices": [
+        {
+          "price": 4833,
+          "quantity": 1
+        }
+      ],
+      "vatRate": "none",
+      "createdAt": "2026-07-17 16:05:38",
+      "quantity": 1,
+      "status": "new",
+      "offer": {
+        "displayName": "Подарочный набор «Конфетти»",
+        "id": 56544,
+        "externalId": "7848",
+        "xmlId": "fVOVepRrib69Em9lkg4mB2",
+        "name": "Подарочный набор «Конфетти»",
+        "article": "1267",
+        "vatRate": "none",
+        "properties": [],
+        "quantity": 11,
+        "unit": {
+          "code": "pc",
+          "name": "Штука",
+          "sym": "шт."
+        }
+      },
+      "properties": [],
+      "purchasePrice": 1199.56,
+      "ordering": 0
+    }
+  ],
+  "payments": {},
+  "fromApi": true,
+  "shipmentStore": "nsk-zheleznodorozhnaia-15-1",
+  "shipmentDate": "2026-07-18",
+  "shipped": false,
+  "customFields": {
+    "segment": "Заказ с сайта",
+    "main_items": "Подарочный набор «Конфетти» ",
+    "sposob_kanala": "Заказ с сайта",
+    "oblast_dostavki": "94. Бесплатно.",
+    "yandex_client_id": "1784278988376050924",
+    "wappi_chat_create": false,
+    "recipient_customer": false,
+    "order_12317d55_b31f": false,
+    "order_availability_date": "2026-07-18",
+    "data_i_vremia_gotovnosti": "2026-07-18 00:00:00",
+    "imb_yandex_metrika_marker": false,
+    "sluzhebnoe_foto_otpravleno": false,
+    "zapros_na_otsenku_otpravlen1": false,
+    "ne_sviazyvatsia_s_poluchatelem": true,
+    "sluzhebnoe_no_files_need_check": false,
+    "sluzhebnoe_otpravit_shablon_wa": false,
+    "summa_zakaza_bez_besp_dostavki": 4833,
+    "sluzhebnoe_otpravit_opoveshchenie_va": false,
+    "sluzhebnoe_otpravit_shablon_novyi_zakaz": true,
+    "sluzhebnoe_otlozhennaia_otpravka_shablona_novyi_zakaz": false
+  },
+  "currency": "RUB"
+}

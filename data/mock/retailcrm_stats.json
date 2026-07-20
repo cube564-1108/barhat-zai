@@ -1,0 +1,26 @@
+{
+  "statuses": {
+    "new": 10,
+    "send-to-florist": 140,
+    "at-work": 90,
+    "call-courier": 30,
+    "complete": 170,
+    "cancel-other": 30,
+    "wait-client": 30
+  },
+  "stores": {
+    "nsk-zheleznodorozhnaia-15-1": 90,
+    "barkhat-ekb": 160,
+    "cheliabinsk-tsvillinga-59": 30,
+    "barkhat-barnaul2": 50,
+    "barkhat-nsk-levyi": 20,
+    "nsk-voskhod-3": 70,
+    "barkhat-barnaul": 30,
+    "barkhat-tomsk": 30,
+    "cheliabinsk-sverdl-pr-23": 10,
+    "barkhat-akadem": 10
+  },
+  "total_orders": 500,
+  "from_date": "2026-05-18 16:13:42",
+  "to_date": "2026-07-17 16:13:42"
+}

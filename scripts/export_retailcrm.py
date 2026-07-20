@@ -11,6 +11,7 @@ import logging
 from datetime import datetime
 from typing import List, Dict, Any
 import json
+from urllib.parse import quote
 from dotenv import load_dotenv
 
 # Пробуем импортировать requests для fallback
@@ -151,9 +152,9 @@ class RetailCRMExporter:
             # Формируем URL с параметрами (из-за особенностей RetailCRM API)
             url = f"{self.api_url}/api/v5/orders?limit={limit}&offset={offset}"
             if from_date:
-                url += f"&fromDate={from_date}"
+                url += f"&fromDate={quote(from_date)}"
             if to_date:
-                url += f"&toDate={to_date}"
+                url += f"&toDate={quote(to_date)}"
             url += "&fields=id,number,status,sum,totalSum,createdAt,updatedAt,customer,paymentType,deliveryType,cost"
 
             logger.info(f"Fetching URL: {url}")
@@ -168,7 +169,7 @@ class RetailCRMExporter:
                         timeout=30,
                         verify=False  # Отключаем проверку SSL
                     )
-                    logger.info(f"Got response: status={response.status}")
+                    logger.info(f"Got response: status={response.status_code}")
 
                     if response.status_code != 200:
                         print(f"Ошибка HTTP: {response.status_code}")
