@@ -118,6 +118,7 @@ class RetailCRMExporter:
                 class SNIAdapter(HTTPAdapter):
                     def __init__(self, pool_manager, *args, **kwargs):
                         self._pool_manager = pool_manager
+                        self.poolmanager = pool_manager  # Для совместимости с requests
                         super().__init__(*args, **kwargs)
 
                     def init_poolmanager(self, connections, maxsize, block=False):
