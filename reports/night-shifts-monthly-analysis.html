@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ночные смены — анализ эффективности</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vollkorn:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /**
+         * БАРХАТ — фирменные токены
+         */
+        :root {
+            --barkhat-wine:        #411330;
+            --barkhat-pink:        #D19CC2;
+            --barkhat-pink-bright: #E1A4C9;
+            --barkhat-pink-light:  #E4C2DD;
+            --barkhat-pink-deep:   #B26FA1;
+            --barkhat-gray-dark:   #3C3C3C;
+            --barkhat-gray:        #6F6F6F;
+            --barkhat-white:       #FFFFFF;
+            --barkhat-gradient:    linear-gradient(135deg, #E1A4C9 0%, #B26FA1 100%);
+            --font-heading:        'Vollkorn', Georgia, serif;
+            --font-body:           'Inter', 'PT Sans', system-ui, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            color: var(--barkhat-gray-dark);
+            background: linear-gradient(135deg, #FAF6F8 0%, #F5EBF0 100%);
+            font-weight: 300;
+            line-height: 1.5;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-family: var(--font-heading);
+            color: var(--barkhat-wine);
+            font-weight: 600;
+            font-size: 2.5em;
+            line-height: 1.2;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--barkhat-gray);
+            font-size: 0.9em;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: var(--barkhat-white);
+            border: 1px solid var(--barkhat-pink-light);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 16px rgba(65, 19, 48, 0.08);
+        }
+
+        .card h2 {
+            font-family: var(--font-heading);
+            color: var(--barkhat-wine);
+            font-weight: 600;
+            font-size: 1.4em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+
+        .summary-item {
+            background: linear-gradient(135deg, rgba(225, 164, 201, 0.1) 0%, rgba(178, 111, 161, 0.1) 100%);
+            border: 1px solid var(--barkhat-pink-light);
+            border-radius: 12px;
+            padding: 18px;
+            text-align: center;
+        }
+
+        .summary-item .label {
+            font-size: 0.75em;
+            color: var(--barkhat-gray);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .summary-item .value {
+            font-family: var(--font-heading);
+            font-size: 1.8em;
+            font-weight: 600;
+            color: var(--barkhat-wine);
+        }
+
+        .summary-item.positive .value {
+            color: #2d7a3e;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.85em;
+        }
+
+        th, td {
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--barkhat-pink-light);
+        }
+
+        th {
+            background: var(--barkhat-pink-light);
+            color: var(--barkhat-wine);
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        tr:hover td {
+            background: rgba(228, 194, 221, 0.2);
+        }
+
+        .negative {
+            color: #d64545;
+        }
+
+        .positive {
+            color: #2d7a3e;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 320px;
+            margin: 15px 0;
+        }
+
+        .alert {
+            padding: 18px 22px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, rgba(45, 122, 62, 0.1) 0%, rgba(45, 122, 62, 0.05) 100%);
+            border: 1px solid rgba(45, 122, 62, 0.3);
+        }
+
+        .alert-success .alert-icon {
+            color: #2d7a3e;
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, rgba(65, 19, 48, 0.1) 0%, rgba(65, 19, 48, 0.05) 100%);
+            border: 1px solid var(--barkhat-pink);
+        }
+
+        .alert-info .alert-icon {
+            color: var(--barkhat-pink-deep);
+        }
+
+        .alert-icon {
+            font-size: 1.8em;
+        }
+
+        .solutions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .solution-card {
+            background: linear-gradient(135deg, rgba(225, 164, 201, 0.08) 0%, rgba(178, 111, 161, 0.08) 100%);
+            border: 1px solid var(--barkhat-pink-light);
+            border-radius: 12px;
+            padding: 22px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .solution-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(65, 19, 48, 0.12);
+        }
+
+        .solution-card h3 {
+            font-family: var(--font-heading);
+            color: var(--barkhat-wine);
+            font-weight: 600;
+            font-size: 1.1em;
+            margin-bottom: 12px;
+        }
+
+        .solution-card p {
+            color: var(--barkhat-gray-dark);
+            line-height: 1.6;
+            font-size: 0.9em;
+        }
+
+        .footer {
+            text-align: center;
+            color: var(--barkhat-gray);
+            margin-top: 30px;
+            padding: 20px;
+            border-top: 1px solid var(--barkhat-pink-light);
+        }
+
+        .salon-section {
+            margin-bottom: 35px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid var(--barkhat-pink-light);
+        }
+
+        .salon-section:last-child {
+            border-bottom: none;
+        }
+
+        .salon-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .salon-title {
+            font-family: var(--font-heading);
+            font-size: 1.25em;
+            color: var(--barkhat-wine);
+            font-weight: 600;
+        }
+
+        .salon-stats {
+            display: flex;
+            gap: 15px;
+            font-size: 0.85em;
+            color: var(--barkhat-gray);
+            flex-wrap: wrap;
+        }
+
+        .roi-badge {
+            background: var(--barkhat-gradient);
+            color: var(--barkhat-white);
+            padding: 5px 12px;
+            border-radius: 16px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+
+        .cost-breakdown {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-top: 15px;
+            padding: 18px;
+            background: linear-gradient(135deg, rgba(65, 19, 48, 0.05) 0%, rgba(178, 111, 161, 0.05) 100%);
+            border-radius: 10px;
+            border: 1px solid var(--barkhat-pink-light);
+        }
+
+        .cost-item {
+            text-align: center;
+        }
+
+        .cost-item .label {
+            font-size: 0.75em;
+            color: var(--barkhat-gray);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 5px;
+        }
+
+        .cost-item .value {
+            font-family: var(--font-heading);
+            font-size: 1.2em;
+            font-weight: 600;
+            color: var(--barkhat-wine);
+        }
+
+        .dates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .date-item {
+            background: linear-gradient(135deg, rgba(225, 164, 201, 0.08) 0%, rgba(178, 111, 161, 0.08) 100%);
+            border: 1px solid var(--barkhat-pink-light);
+            border-radius: 10px;
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .date-item .salon-name {
+            font-size: 0.9em;
+            color: var(--barkhat-gray-dark);
+            font-weight: 500;
+        }
+
+        .date-item .date-value {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--barkhat-pink-deep);
+        }
+
+        .logo-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: var(--barkhat-wine);
+            border-radius: 12px;
+            color: var(--barkhat-white);
+        }
+
+        .logo-bar .logo-icon {
+            font-size: 1.8em;
+        }
+
+        .logo-bar .logo-text {
+            font-family: var(--font-heading);
+            font-size: 1.4em;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+
+        .logo-bar .logo-descr {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.85em;
+            margin-left: auto;
+        }
+
+        .cc-note {
+            background: linear-gradient(135deg, rgba(65, 19, 48, 0.05) 0%, rgba(178, 111, 161, 0.05) 100%);
+            border: 1px solid var(--barkhat-pink-light);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: var(--barkhat-gray-dark);
+        }
+
+        .cc-note strong {
+            color: var(--barkhat-wine);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            table {
+                font-size: 0.75em;
+            }
+
+            .chart-container {
+                height: 250px;
+            }
+
+            .salon-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Логотип -->
+        <div class="logo-bar">
+            <span class="logo-icon">🌙</span>
+            <span class="logo-text">БАРХАТ</span>
+            <span class="logo-descr">Анализ эффективности ночных смен</span>
+        </div>
+
+        <h1>Ночные смены</h1>
+        <p class="subtitle">Январь 2026 — Июль 2026 • Круглосуточные цветочные салоны</p>
+
+        <!-- Даты начала работы -->
+        <div class="card">
+            <h2>📅 Даты начала ночных смен</h2>
+            <div class="dates-grid">
+                <div class="date-item">
+                    <span class="salon-name">ЕКБ Бажова 89</span>
+                    <span class="date-value">с 06.02.2026</span>
+                </div>
+                <div class="date-item">
+                    <span class="salon-name">Челябинск Цвиллинга 59</span>
+                    <span class="date-value">с 23.01.2026</span>
+                </div>
+                <div class="date-item">
+                    <span class="salon-name">Томск Дальне-Ключевская 16а</span>
+                    <span class="date-value">с 04.05.2026</span>
+                </div>
+                <div class="date-item">
+                    <span class="salon-name">НСК Восход 3</span>
+                    <span class="date-value">с 22.05.2026</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Расходы на смену -->
+        <div class="card">
+            <h2>💳 Расходы на одну ночную смену</h2>
+            <div class="cost-breakdown">
+                <div class="cost-item">
+                    <div class="label">ЕКБ — Персонал (2 флориста)</div>
+                    <div class="value">3 667 ₽</div>
+                </div>
+                <div class="cost-item">
+                    <div class="label">Другие — Персонал (2 флориста)</div>
+                    <div class="value">3 333 ₽</div>
+                </div>
+                <div class="cost-item">
+                    <div class="label">КЦ — ВСЕГО на все салоны</div>
+                    <div class="value" style="color: var(--barkhat-pink-deep)">3 000 ₽</div>
+                </div>
+                <div class="cost-item">
+                    <div class="label">КЦ — распределяется</div>
+                    <div class="value" style="color: var(--barkhat-pink-deep)">Пропорц. выручке</div>
+                </div>
+            </div>
+            <div class="cc-note">
+                <strong>Важно:</strong> Расходы на контактный центр (3 000 ₽/смена) распределяются между салонами пропорционально их ночной выручке.
+            </div>
+        </div>
+
+        <!-- Главный вывод -->
+        <div class="alert alert-success">
+            <span class="alert-icon">✅</span>
+            <div>
+                <strong style="font-family: var(--font-heading); color: var(--barkhat-wine);">Ночные смены ПРИБЫЛЬНЫ и окупаются!</strong>
+                <div style="color: var(--barkhat-gray); margin-top: 5px; font-size: 0.9em;">Общая прибыль: ~4 883 000 ₽ • Средняя прибыль в месяц: ~257 000 ₽</div>
+            </div>
+        </div>
+
+        <!-- Общая сводка -->
+        <div class="card">
+            <h2>📊 Сводка по салонам</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Салон</th>
+                        <th>Мес.</th>
+                        <th>Смен</th>
+                        <th>Ночь выручка</th>
+                        <th>Заказов</th>
+                        <th>Себестоим.</th>
+                        <th>Расх. салон</th>
+                        <th>Расх. КЦ</th>
+                        <th>Прибыль</th>
+                        <th>ROI</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>ЕКБ Бажова 89</strong></td>
+                        <td>6</td>
+                        <td>86</td>
+                        <td>3 494 384 ₽</td>
+                        <td>1 274</td>
+                        <td>922 517 ₽</td>
+                        <td>315 362 ₽</td>
+                        <td>114 801 ₽</td>
+                        <td class="positive">+2 141 704 ₽</td>
+                        <td class="positive">+498%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Челябинск Цвиллинга 59</strong></td>
+                        <td>7</td>
+                        <td>93</td>
+                        <td>2 866 017 ₽</td>
+                        <td>1 078</td>
+                        <td>756 628 ₽</td>
+                        <td>309 969 ₽</td>
+                        <td>107 379 ₽</td>
+                        <td class="positive">+1 692 040 ₽</td>
+                        <td class="positive">+405%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Томск Дальне-Ключевская 16а</strong></td>
+                        <td>3</td>
+                        <td>44</td>
+                        <td>787 866 ₽</td>
+                        <td>267</td>
+                        <td>208 037 ₽</td>
+                        <td>146 652 ₽</td>
+                        <td>22 602 ₽</td>
+                        <td class="positive">+410 616 ₽</td>
+                        <td class="positive">+243%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>НСК Восход 3</strong></td>
+                        <td>3</td>
+                        <td>35</td>
+                        <td>1 061 432 ₽</td>
+                        <td>424</td>
+                        <td>280 218 ₽</td>
+                        <td>116 655 ₽</td>
+                        <td>25 988 ₽</td>
+                        <td class="positive">+638 571 ₽</td>
+                        <td class="positive">+448%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Ключевые метрики -->
+        <div class="card">
+            <h2>🎯 Ключевые метрики</h2>
+            <div class="summary-grid">
+                <div class="summary-item positive">
+                    <div class="label">Общая прибыль</div>
+                    <div class="value">+4 883 000 ₽</div>
+                </div>
+                <div class="summary-item positive">
+                    <div class="label">Прибыль в месяц</div>
+                    <div class="value">+257 000 ₽</div>
+                </div>
+                <div class="summary-item">
+                    <div class="label">Всего ночн. заказов</div>
+                    <div class="value">3 043</div>
+                </div>
+                <div class="summary-item">
+                    <div class="label">Ночная выручка</div>
+                    <div class="value">8 210 000 ₽</div>
+                </div>
+                <div class="summary-item">
+                    <div class="label">Расходы на КЦ</div>
+                    <div class="value">271 000 ₽</div>
+                </div>
+                <div class="summary-item positive">
+                    <div class="label">Общий ROI</div>
+                    <div class="value">+421%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Детально по салонам -->
+        <div class="card">
+            <h2>🏪 Детально по салонам</h2>
+
+            <!-- ЕКБ -->
+            <div class="salon-section">
+                <div class="salon-header">
+                    <div class="salon-title">ЕКБ Бажова 89 <span class="roi-badge">ROI: +498%</span></div>
+                    <div class="salon-stats">
+                        <span>с 06.02.2026</span>
+                        <span>6 месяцев</span>
+                        <span>1 274 ночных заказов</span>
+                        <span>Прибыль: <strong>+2 141 704 ₽</strong></span>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="ekbChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Челябинск -->
+            <div class="salon-section">
+                <div class="salon-header">
+                    <div class="salon-title">Челябинск Цвиллинга 59 <span class="roi-badge">ROI: +405%</span></div>
+                    <div class="salon-stats">
+                        <span>с 23.01.2026</span>
+                        <span>7 месяцев</span>
+                        <span>1 078 ночных заказов</span>
+                        <span>Прибыль: <strong>+1 692 040 ₽</strong></span>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="chelChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Томск -->
+            <div class="salon-section">
+                <div class="salon-header">
+                    <div class="salon-title">Томск Дальне-Ключевская 16а <span class="roi-badge">ROI: +243%</span></div>
+                    <div class="salon-stats">
+                        <span>с 04.05.2026</span>
+                        <span>3 месяца</span>
+                        <span>267 ночных заказов</span>
+                        <span>Прибыль: <strong>+410 616 ₽</strong></span>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="tomskChart"></canvas>
+                </div>
+            </div>
+
+            <!-- НСК -->
+            <div class="salon-section">
+                <div class="salon-header">
+                    <div class="salon-title">НСК Восход 3 <span class="roi-badge">ROI: +448%</span></div>
+                    <div class="salon-stats">
+                        <span>с 22.05.2026</span>
+                        <span>3 месяца</span>
+                        <span>424 ночных заказа</span>
+                        <span>Прибыль: <strong>+638 571 ₽</strong></span>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="nskChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Выручка vs Расходы -->
+        <div class="card">
+            <h2>💰 Выручка vs Расходы (за весь период)</h2>
+            <div class="chart-container">
+                <canvas id="revenueVsCostChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Средние показатели -->
+        <div class="card">
+            <h2>📊 Средняя прибыль в месяц по салонам</h2>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="label">ЕКБ — выручка/мес</div>
+                    <div class="value">582 000 ₽</div>
+                </div>
+                <div class="summary-item positive">
+                    <div class="label">ЕКБ — прибыль/мес</div>
+                    <div class="value">+357 000 ₽</div>
+                </div>
+                <div class="summary-item">
+                    <div class="label">Челябинск — выручка/мес</div>
+                    <div class="value">409 000 ₽</div>
+                </div>
+                <div class="summary-item positive">
+                    <div class="label">Челябинск — прибыль/мес</div>
+                    <div class="value">+242 000 ₽</div>
+                </div>
+                <div class="summary-item">
+                    <div class="label">Томск — выручка/мес</div>
+                    <div class="value">263 000 ₽</div>
+                </div>
+                <div class="summary-item positive">
+                    <div class="label">Томск — прибыль/мес</div>
+                    <div class="value">+137 000 ₽</div>
+                </div>
+                <div class="summary-item">
+                    <div class="label">НСК — выручка/мес</div>
+                    <div class="value">354 000 ₽</div>
+                </div>
+                <div class="summary-item positive">
+                    <div class="label">НСК — прибыль/мес</div>
+                    <div class="value">+213 000 ₽</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Рекомендации -->
+        <div class="card">
+            <h2>💡 Рекомендации</h2>
+            <div class="solutions">
+                <div class="solution-card">
+                    <h3>1️⃣ Масштабировать ночные смены</h3>
+                    <p><strong>Потенциальная прибыль:</strong> +130 000 — 350 000 ₽/месяц на салон<br><br>
+                    Наиболее рентабельный формат: ЕКБ (ROI +498%, +357K/мес)<br>
+                    Рассмотрите внедрение ночных смен в других салонах сети.</p>
+                </div>
+                <div class="solution-card">
+                    <h3>2️⃣ Эффективная инфраструктура КЦ</h3>
+                    <p>При 3 000 ₽ за смену на все салоны:<br><br>
+                    Расходы КЦ составляют только ~23% от общих расходов<br>
+                    Экономия от масштабирования при расширении сети.</p>
+                </div>
+                <div class="solution-card">
+                    <h3>3️⃣ Томск — требует внимания</h3>
+                    <p>Наименьшая рентабельность (ROI +243%)<br><br>
+                    Несмотря на это, салон прибыльный<br>
+                    Рассмотреть маркетинговые активности для роста.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Анализ выполнен 20.07.2026 • На основе данных за Январь 2026 — Июль 2026</p>
+            <p style="color: var(--barkhat-gray); margin-top: 8px; font-size: 0.85em;">✅ Данные актуальны • Ночные смены прибыльны (КЦ распределён пропорционально выручке)</p>
+        </div>
+    </div>
+
+    <script>
+        // Цвета брендовой палитры для графиков
+        const colors = {
+            wine: '#411330',
+            pink: '#D19CC2',
+            pinkBright: '#E1A4C9',
+            pinkLight: '#E4C2DD',
+            pinkDeep: '#B26FA1',
+            green: '#2d7a3e',
+            orange: '#E8913D'
+        };
+
+        // Данные по ЕКБ (с учётом пропорц. КЦ, с 06.02.2026)
+        const ekbData = {
+            labels: ['Фев', 'Март', 'Апр', 'Май', 'Июн', 'Июл'],
+            revenue: [626199, 810334, 432403, 507387, 587262, 530799],
+            profit: [403213, 517641, 237339, 301062, 363442, 319007]
+        };
+
+        // Данные по Челябинску (с учётом пропорц. КЦ, с 23.01.2026)
+        const chelData = {
+            labels: ['Янв*', 'Фев', 'Март', 'Апр', 'Май', 'Июн', 'Июл'],
+            revenue: [64914, 566021, 724406, 318731, 391780, 431422, 368743],
+            profit: [22445, 349989, 461928, 165496, 224943, 257410, 209829]
+        };
+
+        // Данные по Томску (с учётом пропорц. КЦ, с 04.05.2026)
+        const tomskData = {
+            labels: ['Май', 'Июн', 'Июл'],
+            revenue: [290967, 288862, 208037],
+            profit: [158193, 155831, 96592]
+        };
+
+        // Данные по НСК (с учётом пропорц. КЦ, с 22.05.2026)
+        const nskData = {
+            labels: ['Май*', 'Июн', 'Июл'],
+            revenue: [124379, 610580, 326473],
+            profit: [73459, 385067, 180045]
+        };
+
+        // Общие настройки графиков
+        const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: { color: colors.wine, font: { family: 'Inter' } }
+                }
+            },
+            scales: {
+                y: {
+                    ticks: { color: colors.pinkDeep, font: { family: 'Inter' } },
+                    grid: { color: 'rgba(178, 111, 161, 0.15)' }
+                },
+                x: {
+                    ticks: { color: colors.pinkDeep, font: { family: 'Inter' } },
+                    grid: { color: 'rgba(178, 111, 161, 0.15)' }
+                }
+            }
+        };
+
+        // График ЕКБ
+        new Chart(document.getElementById('ekbChart'), {
+            type: 'line',
+            data: {
+                labels: ekbData.labels,
+                datasets: [{
+                    label: 'Выручка, ₽',
+                    data: ekbData.revenue,
+                    borderColor: colors.pinkDeep,
+                    backgroundColor: 'rgba(178, 111, 161, 0.15)',
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'Прибыль, ₽',
+                    data: ekbData.profit,
+                    borderColor: colors.green,
+                    backgroundColor: 'rgba(45, 122, 62, 0.15)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: commonOptions
+        });
+
+        // График Челябинск
+        new Chart(document.getElementById('chelChart'), {
+            type: 'line',
+            data: {
+                labels: chelData.labels,
+                datasets: [{
+                    label: 'Выручка, ₽',
+                    data: chelData.revenue,
+                    borderColor: colors.pinkDeep,
+                    backgroundColor: 'rgba(178, 111, 161, 0.15)',
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'Прибыль, ₽',
+                    data: chelData.profit,
+                    borderColor: colors.green,
+                    backgroundColor: 'rgba(45, 122, 62, 0.15)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: commonOptions
+        });
+
+        // График Томск
+        new Chart(document.getElementById('tomskChart'), {
+            type: 'line',
+            data: {
+                labels: tomskData.labels,
+                datasets: [{
+                    label: 'Выручка, ₽',
+                    data: tomskData.revenue,
+                    borderColor: colors.pinkDeep,
+                    backgroundColor: 'rgba(178, 111, 161, 0.15)',
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'Прибыль, ₽',
+                    data: tomskData.profit,
+                    borderColor: colors.green,
+                    backgroundColor: 'rgba(45, 122, 62, 0.15)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: commonOptions
+        });
+
+        // График НСК
+        new Chart(document.getElementById('nskChart'), {
+            type: 'line',
+            data: {
+                labels: nskData.labels,
+                datasets: [{
+                    label: 'Выручка, ₽',
+                    data: nskData.revenue,
+                    borderColor: colors.pinkDeep,
+                    backgroundColor: 'rgba(178, 111, 161, 0.15)',
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'Прибыль, ₽',
+                    data: nskData.profit,
+                    borderColor: colors.green,
+                    backgroundColor: 'rgba(45, 122, 62, 0.15)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: commonOptions
+        });
+
+        // Выручка vs Расходы
+        new Chart(document.getElementById('revenueVsCostChart'), {
+            type: 'bar',
+            data: {
+                labels: ['ЕКБ', 'Челябинск', 'Томск', 'НСК'],
+                datasets: [{
+                    label: 'Ночная выручка',
+                    data: [3494384, 2866017, 787866, 1061432],
+                    backgroundColor: 'rgba(178, 111, 161, 0.7)',
+                    borderColor: colors.pinkDeep,
+                    borderWidth: 1
+                }, {
+                    label: 'Расходы салон',
+                    data: [315362, 309969, 146652, 116655],
+                    backgroundColor: 'rgba(232, 145, 61, 0.7)',
+                    borderColor: colors.orange,
+                    borderWidth: 1
+                }, {
+                    label: 'Расходы КЦ',
+                    data: [114801, 107379, 22602, 25988],
+                    backgroundColor: 'rgba(65, 19, 48, 0.6)',
+                    borderColor: colors.wine,
+                    borderWidth: 1
+                }, {
+                    label: 'Чистая прибыль',
+                    data: [2141704, 1692040, 410616, 638571],
+                    backgroundColor: 'rgba(45, 122, 62, 0.7)',
+                    borderColor: colors.green,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: colors.wine, font: { family: 'Inter' } }
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: {
+                            color: colors.pinkDeep,
+                            font: { family: 'Inter' },
+                            callback: v => v.toLocaleString() + ' ₽'
+                        },
+                        grid: { color: 'rgba(178, 111, 161, 0.15)' }
+                    },
+                    x: {
+                        ticks: { color: colors.pinkDeep, font: { family: 'Inter', size: 11 } },
+                        grid: { color: 'rgba(178, 111, 161, 0.15)' }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
