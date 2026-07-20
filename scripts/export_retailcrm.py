@@ -201,14 +201,19 @@ class RetailCRMExporter:
             try:
                 if self.use_requests:
                     # Используем requests Session с custom SSL context для SNI
-                    logger.info("Using requests library with custom SSL...")
-                    headers_with_host = {**self.headers, 'Host': self.api_hostname}
-                    response = self.requests_session.get(
-                        url,
-                        headers=headers_with_host,
-                        timeout=30
-                    )
-                    logger.info(f"Got response: status={response.status_code}")
+                    try:
+                        logger.info("Using requests library with custom SSL...")
+                        headers_with_host = {**self.headers, 'Host': self.api_hostname}
+                        response = self.requests_session.get(
+                            url,
+                            headers=headers_with_host,
+                            timeout=30
+                        )
+                        logger.info(f"Got response: status={response.status_code}")
+                    except Exception as requests_error:
+                        logger.warning(f"Requests failed: {requests_error}, falling back to urllib3")
+                        self.use_requests = False  # Переключаемся на urllib3
+                        raise requests_error  # Пробрасываем чтобы попасть в urllib3 fallback
 
                     if response.status_code != 200:
                         print(f"Ошибка HTTP: {response.status_code}")
