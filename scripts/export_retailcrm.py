@@ -58,7 +58,11 @@ class RetailCRMExporter:
 
         # Создаём максимально permissive SSL context
         # Это необходимо для соединения с RetailCRM при проблемах с сертификатом
-        self.ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        # Используем PROTOCOL_TLSv1_2 для максимальной совместимости
+        try:
+            self.ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+        except AttributeError:
+            self.ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
         self.ssl_context.check_hostname = False
         self.ssl_context.verify_mode = ssl.CERT_NONE
 
@@ -74,9 +78,13 @@ class RetailCRMExporter:
         except Exception:
             pass  # Игнорируем если не поддерживается
         try:
-            self.ssl_context.set_ciphers('HIGH:!DH:!3DES')
+            # Более совместимые cipher suites
+            self.ssl_context.set_ciphers('ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:AES128-SHA:AES256-SHA')
         except Exception:
-            pass
+            try:
+                self.ssl_context.set_ciphers('HIGH:!DH:!3DES')
+            except Exception:
+                pass
 
         # Разрешаем все поддерживаемые TLS версии
         try:
@@ -97,8 +105,8 @@ class RetailCRMExporter:
         except Exception:
             pass
 
-        # Выбираем метод запроса: requests предпочтительнее
-        self.use_requests = REQUESTS_AVAILABLE
+        # Выбираем метод запроса: urllib3 надежнее для проблемных SSL
+        self.use_requests = False  # Принудительно urllib3
 
         if self.use_requests:
             logger.info("Using requests library for API calls")
@@ -158,15 +166,11 @@ class RetailCRMExporter:
                 )
 
         self.headers = {
-            'X-API-Key': self.api_key
+            'X-API-Key': self.api_key,
+            'Host': self.api_hostname  # Добавляем Host header для SNI
         }
 
-        # Выбираем метод запроса: requests предпочтительнее
-        self.use_requests = REQUESTS_AVAILABLE
-        if self.use_requests:
-            logger.info("Using requests library for API calls")
-        else:
-            logger.info("Using urllib3 for API calls")
+        logger.info("Using urllib3 for API calls with custom SSL context")
 
     def fetch_orders(self, from_date: str, to_date: str = None) -> List[Dict[str, Any]]:
         """
@@ -199,60 +203,30 @@ class RetailCRMExporter:
             logger.info(f"Fetching URL: {url}")
 
             try:
-                if self.use_requests:
-                    # Используем requests Session с custom SSL context для SNI
-                    try:
-                        logger.info("Using requests library with custom SSL...")
-                        headers_with_host = {**self.headers, 'Host': self.api_hostname}
-                        response = self.requests_session.get(
-                            url,
-                            headers=headers_with_host,
-                            timeout=30
-                        )
-                        logger.info(f"Got response: status={response.status_code}")
-                    except Exception as requests_error:
-                        logger.warning(f"Requests failed: {requests_error}, falling back to urllib3")
-                        self.use_requests = False  # Переключаемся на urllib3
-                        raise requests_error  # Пробрасываем чтобы попасть в urllib3 fallback
+                # Используем urllib3 напрямую с custom SSL context
+                logger.info("Using urllib3 with custom SSL context...")
+                response = self.http.request(
+                    'GET',
+                    url,
+                    headers=self.headers,
+                    retries=False,
+                    timeout=30
+                )
+                logger.info(f"Got response: status={response.status}")
 
-                    if response.status_code != 200:
-                        print(f"Ошибка HTTP: {response.status_code}")
-                        if response.status_code >= 500:
-                            break
-                        elif response.status_code == 401:
-                            print("Ошибка авторизации - проверьте API ключ")
-                            break
-                        elif response.status_code == 403:
-                            print("Ошибка доступа - нет прав на ресурс")
-                            break
-                        continue
+                if response.status != 200:
+                    print(f"Ошибка HTTP: {response.status}")
+                    if response.status >= 500:
+                        break
+                    elif response.status == 401:
+                        print("Ошибка авторизации - проверьте API ключ")
+                        break
+                    elif response.status == 403:
+                        print("Ошибка доступа - нет прав на ресурс")
+                        break
+                    continue
 
-                    data = response.json()
-
-                else:
-                    # Fallback на urllib3
-                    logger.info("Using urllib3...")
-                    response = self.http.request(
-                        'GET',
-                        url,
-                        headers=self.headers,
-                        retries=False
-                    )
-                    logger.info(f"Got response: status={response.status}")
-
-                    if response.status != 200:
-                        print(f"Ошибка HTTP: {response.status}")
-                        if response.status >= 500:
-                            break
-                        elif response.status == 401:
-                            print("Ошибка авторизации - проверьте API ключ")
-                            break
-                        elif response.status == 403:
-                            print("Ошибка доступа - нет прав на ресурс")
-                            break
-                        continue
-
-                    data = json.loads(response.data.decode('utf-8'))
+                data = json.loads(response.data.decode('utf-8'))
 
                 if not data.get('success'):
                     error_msg = data.get('errorMsg', 'Unknown error')
@@ -281,11 +255,6 @@ class RetailCRMExporter:
             except urllib3.exceptions.SSLError as e:
                 logger.error(f"SSLError: {type(e).__name__}: {e}")
                 logger.error("Это может быть связано с проблемами сертификата RetailCRM")
-                import traceback
-                traceback.print_exc()
-                break
-            except requests.exceptions.SSLError as e:
-                logger.error(f"Requests SSLError: {type(e).__name__}: {e}")
                 import traceback
                 traceback.print_exc()
                 break
