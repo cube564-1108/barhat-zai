@@ -73,8 +73,10 @@ def background_load_current_month():
         with cache_lock:
             cache_status['loading'] = False
             cache_status['error'] = str(e)
+            cache_status['using_mock'] = True  # Флаг для fallback на mock
 
-        print(f"[BG] ❌ Ошибка загрузки: {e}")
+        print(f"[BG] ❌ Ошибка загрузки из RetailCRM: {e}")
+        print(f"[BG] 🔄 API недоступен - будет использоваться mock режим")
         import traceback
         traceback.print_exc()
 
@@ -611,7 +613,9 @@ def api_sales_status():
             'loading': cache_status.get('loading', False),
             'last_refresh': cache_status.get('last_refresh'),
             'error': cache_status.get('error'),
-            'current_month_loaded': cache_status.get('current_month_loaded', False)
+            'current_month_loaded': cache_status.get('current_month_loaded', False),
+            'using_mock': cache_status.get('using_mock', False),
+            'mock_mode': SALES_MOCK_MODE
         })
 
 
@@ -737,12 +741,12 @@ def api_sales_current_month():
                     }), 202
 
                 if cache_status.get('error'):
-                    return jsonify({
-                        'error': 'cache_error',
-                        'message': 'Ошибка загрузки данных',
-                        'details': cache_status.get('error'),
-                        'status': cache_status.copy()
-                    }), 503
+                    # API недоступен - используем mock
+                    print("[API] RetailCRM API недоступен, используем mock данные")
+                    mock_data = get_mock_current_month()
+                    mock_data['_mock'] = True  # Флаг что это mock
+                    mock_data['_reason'] = f"API недоступен: {cache_status.get('error')}"
+                    return jsonify(mock_data)
 
             # Если не загружается - возвращаем mock как fallback
             print("[API] Кэш пуст и не загружается, возвращаем mock данные")

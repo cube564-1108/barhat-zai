@@ -216,6 +216,9 @@ class RetailCRMExporter:
 
                 if response.status != 200:
                     print(f"Ошибка HTTP: {response.status}")
+                    # Логируем тело ответа для отладки
+                    response_text = response.data.decode('utf-8', errors='ignore')
+                    print(f"Тело ответа: {response_text[:500]}")
                     if response.status >= 500:
                         break
                     elif response.status == 401:
@@ -226,7 +229,15 @@ class RetailCRMExporter:
                         break
                     continue
 
-                data = json.loads(response.data.decode('utf-8'))
+                response_text = response.data.decode('utf-8', errors='ignore')
+                logger.info(f"Response length: {len(response_text)}")
+
+                try:
+                    data = json.loads(response_text)
+                except json.JSONDecodeError as e:
+                    logger.error(f"JSON decode error: {e}")
+                    logger.error(f"Response text (first 1000 chars): {response_text[:1000]}")
+                    break
 
                 if not data.get('success'):
                     error_msg = data.get('errorMsg', 'Unknown error')
