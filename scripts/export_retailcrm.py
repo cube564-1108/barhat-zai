@@ -11,7 +11,7 @@ import logging
 from datetime import datetime
 from typing import List, Dict, Any
 import json
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 from dotenv import load_dotenv
 
 # Пробуем импортировать requests для fallback
@@ -42,6 +42,10 @@ class RetailCRMExporter:
 
         self.api_url = os.getenv('RETAILCRM_API_URL')
         self.api_key = os.getenv('RETAILCRM_API_KEY')
+
+        # Извлекаем hostname для SNI и Host header
+        parsed_url = urlparse(self.api_url)
+        self.api_hostname = parsed_url.netloc  # barhatretailcrm.retailcrm.ru
 
         # Логируем для отладки (без ключа!)
         logger.info(f"RetailCRM URL: {self.api_url}")
@@ -162,10 +166,12 @@ class RetailCRMExporter:
             try:
                 if self.use_requests:
                     # Используем requests с отключенной верификацией SSL
+                    # Добавляем правильный Host header для SNI
                     logger.info("Using requests library...")
+                    headers_with_host = {**self.headers, 'Host': self.api_hostname}
                     response = requests.get(
                         url,
-                        headers=self.headers,
+                        headers=headers_with_host,
                         timeout=30,
                         verify=False  # Отключаем проверку SSL
                     )
