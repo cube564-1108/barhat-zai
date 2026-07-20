@@ -689,44 +689,12 @@ def api_sales_current_month():
                 cached['generated_at'] = datetime.now().isoformat()
                 return jsonify(cached)
 
-            # Если нет в кэше - загружаем
-            from_date = datetime(year, month, 1).strftime('%Y-%m-%d %H:%M:%S')
-
-            if month == 12:
-                to_date = datetime(year, 12, 31, 23, 59, 59).strftime('%Y-%m-%d %H:%M:%S')
-            else:
-                to_date = datetime(year, month + 1, 1) - timedelta(seconds=1)
-                to_date = to_date.strftime('%Y-%m-%d %H:%M:%S')
-
-            # Выгружаем данные
-            orders = exporter.fetch_orders(from_date, to_date)
-            orders = exporter._filter_valid_orders(orders)
-            salons = exporter.group_by_salon(orders)
-
-            total = {
-                'orders_count': sum(s['orders_count'] for s in salons),
-                'shipment_sum': sum(s['shipment_sum'] for s in salons),
-                'avg_check': 0
-            }
-            if total['orders_count'] > 0:
-                total['avg_check'] = total['shipment_sum'] / total['orders_count']
-
-            result = {
-                'period': {
-                    'from': from_date,
-                    'to': to_date,
-                    'label': f"{1}-{datetime(year, month, 1).day} {datetime(year, month, 1).strftime('%B %Y')}"
-                },
-                'salons': salons,
-                'total': total,
-                'cached': False,
-                'generated_at': datetime.now().isoformat()
-            }
-
-            # Сохраняем в кэш
-            exporter._save_cache(result, cache_key)
-
-            return jsonify(result)
+            # Если нет в кэше - не загружаем синхронно!
+            return jsonify({
+                'error': 'no_cache',
+                'message': 'Данные за этот период не загружены. Используйте /api/sales/refresh для загрузки в фоне.',
+                'cache_key': cache_key
+            }), 404
         else:
             # Текущий месяц - пробуем из кэша
             now = datetime.now()
@@ -827,15 +795,13 @@ def api_sales_compare_periods():
             cached['generated_at'] = datetime.now().isoformat()
             return jsonify(cached)
 
-        # Если нет в кэше - загружаем
-        result = exporter.compare_periods(
-            from_date_str, to_date_str,
-            compare_from_str, compare_to_str
-        )
-
-        result['generated_at'] = datetime.now().isoformat()
-
-        return jsonify(result)
+        # Если нет в кэше - не загружаем синхронно!
+        # Вместо этого возвращаем статус что данных нет
+        return jsonify({
+            'error': 'no_cache',
+            'message': 'Данные не загружены. Используйте /api/sales/refresh для загрузки в фоне.',
+            'cache_key': cache_key
+        }), 404
 
     except ValueError as e:
         return jsonify({'error': f'Неверный формат даты: {str(e)}'}), 400
@@ -877,11 +843,12 @@ def api_sales_monthly_comparison():
             cached['generated_at'] = datetime.now().isoformat()
             return jsonify(cached)
 
-        # Если нет в кэше - загружаем
-        result = exporter.get_monthly_comparison(year)
-        result['generated_at'] = datetime.now().isoformat()
-
-        return jsonify(result)
+        # Если нет в кэше - не загружаем синхронно!
+        return jsonify({
+            'error': 'no_cache',
+            'message': 'Данные не загружены. Используйте /api/sales/refresh для загрузки в фоне.',
+            'cache_key': cache_key
+        }), 404
 
     except Exception as e:
         print(f'[ERROR] /api/sales/monthly-comparison: {e}')
