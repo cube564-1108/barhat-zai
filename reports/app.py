@@ -11,6 +11,7 @@ import threading
 import time
 from datetime import datetime, timedelta
 from functools import wraps
+from urllib.parse import urlparse
 
 import jwt
 from flask import Flask, request, jsonify, send_from_directory, redirect, make_response, abort
@@ -203,8 +204,12 @@ def sso():
     # Создаём нашу сессию
     session_value = create_session_cookie(claims)
 
-    # Редирект на корень с установкой куки
-    resp = make_response(redirect("/"))
+    # Редирект на страницу из параметра next (с защитой от open redirect)
+    next_path = request.args.get("next", "/")
+    # Защита от open redirect: только относительные пути своего сайта
+    if not next_path.startswith("/") or next_path.startswith("//") or urlparse(next_path).netloc:
+        next_path = "/"
+    resp = make_response(redirect(next_path))
     # Кука внутри iframe — нужны SameSite=None; Secure; Partitioned (CHIPS)
     resp.headers.add(
         "Set-Cookie",
